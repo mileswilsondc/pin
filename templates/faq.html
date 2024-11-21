@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Frequently Questioned Answers</h1>
+<h3>What is this?</h3>
+<p>Pinboard is a bookmarking and bookmark organization service.</p>
+<h3>How do I add a bookmark?</h3>
+<p>Though you can add them interactively <a href="{{ url_for('submit_link')}}">here</a>, the site is designed to be used primarily through bookmarklets.</p>
+<p>Here are the bookmarklets offered:</p>
+<ul>
+<li><a href="https://pin.mileswilson.net/bookmarklet/pin-this" class="bookmarklet">Pin This</a></li>
+<li><a href="https://pin.mileswilson.net/me" class="bookmarklet">My Pinboard</a></li>
+<li><a href="https://pin.mileswilson.net/bookmarklet/readlater" class="bookmarklet">Read Later</a></li>
+</ul>
+{% endblock %}

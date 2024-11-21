@@ -1,0 +1,14 @@
+<!-- templates/index.html -->
+{% extends 'base.html' %}
+{% from 'macros.html' import link_item %}
+
+{% block content %}
+    {% if links %}
+    {% for link in links %}
+        {{ link_item(link, show_user=True, current_user=current_user) }}
+    {% endfor %}
+    {% else %}
+        <h1>Welcome to pin.mileswilson.net</h1>
+        <p>There are no pins yet. Add some</p>
+    {% endif %}
+{% endblock %}

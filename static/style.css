@@ -1,0 +1,155 @@
+/* General Styles */
+body {
+    font-family: Helvetica, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    font-size: 1.2em;
+    margin-bottom: 0.5em;
+}
+
+a {
+    text-decoration: none;
+}
+
+nav a {
+    margin: 0 5px;
+    text-transform: lowercase;
+}
+
+hr {
+    border: none;
+    border-bottom: 1px dotted #aaa;
+    height: 1px;
+    margin: 0;
+    margin-bottom: 1em;
+}
+
+.container {
+    width: 1050px;
+    max-width: 95vw;
+    margin: 0 auto;
+    min-height: 400px;
+    padding: 0 20px 10px 20px;
+}
+
+/* Form Styles */
+.form {
+    max-width: 600px;
+    padding: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+}
+
+.form-label {
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+    font-size: 1em;
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.checkbox-group {
+    margin-bottom: 15px;
+}
+
+.form-checkbox {
+    align-items: center;
+}
+
+.form-checkbox input {
+}
+
+.form-button {
+    padding: 10px 20px;
+    font-size: 1em;
+    cursor: pointer;
+}
+
+.errors {
+    color: red;
+    list-style-type: none;
+    padding: 0;
+    margin-top: 5px;
+}
+
+.errors li {
+    margin: 0;
+}
+
+/* Additional Styles */
+a.tag {
+    color: #a51;
+    line-height: 190%;
+}
+
+.bookmark-title {
+    line-height: 130%;
+    font-size: 110%;
+}
+
+.when {
+    color: #777;
+    font-size: 90%;
+}
+
+.description {
+    line-height: 120%;
+    margin-top: 2px;
+    color: #555;
+    text-align: justify;
+}
+
+.manipulate {
+    text-transform: lowercase;
+}
+
+.manipulate .edit {
+    color: lightgray;
+}
+
+.manipulate .delete-link {
+    color: lightgray;
+}
+
+.bookmark {
+    margin-bottom: 1.3em;
+}
+
+nav .logo {
+    margin-right: 10px;
+}
+
+.small-username {
+    margin-bottom: 10px;
+}
+
+/* Style the delete button to look like a link */
+.delete-form {
+    display: inline;
+}
+
+.delete-link {
+    background: none;
+    border: none;
+    color: #007bff; /* Bootstrap link color; adjust as needed */
+    text-decoration: none;
+    cursor: pointer;
+    padding: 0;
+    text-transform: lowercase;
+    font: inherit;
+}
