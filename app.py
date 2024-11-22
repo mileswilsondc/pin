@@ -16,6 +16,7 @@ import time
 from functools import wraps  # For admin_required decorator
 from functools import wraps
 from flask_wtf import CSRFProtect
+from urllib.parse import unquote
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
@@ -95,26 +96,30 @@ def logout():
 @login_required
 def submit_link():
     form = LinkForm()
+
+    # Pre-fill form fields from query parameters if available
+    if request.method == 'GET':
+        url = request.args.get('url')
+        title = request.args.get('title')
+        read_later = request.args.get('read_later')
+        
+        if url:
+            form.url.data = unquote(url)
+        if title:
+            form.title.data = unquote(title)
+        if read_later and read_later.lower() == 'true':
+            form.read_later.data = True
+
     if form.validate_on_submit():
         link = Link(
             url=form.url.data,
             title=form.title.data,
             description=form.description.data,
+            extract=form.extract.data,
             private=form.private.data,
             read_later=form.read_later.data,
             user_id=current_user.id
         )
-        # Handle tags
-        tag_list = form.tags.data.split()
-        for tag_name in tag_list:
-            tag = Tag.query.filter_by(name=tag_name).first()
-            if not tag:
-                tag = Tag(name=tag_name)
-            link.tags.append(tag)
-        # Handle archiving
-        if form.archive.data:
-            archive_content = archive_page(form.url.data)
-            link.archive_url = archive_content
         db.session.add(link)
         db.session.commit()
         flash('Link submitted successfully.')
@@ -165,6 +170,7 @@ def edit_link(link_id):
     if form.validate_on_submit():
         link.title = form.title.data
         link.description = form.description.data
+        link.extract = form.extract.data  # Update the extract
         link.private = form.private.data
         link.read_later = form.read_later.data
 
@@ -181,9 +187,22 @@ def edit_link(link_id):
         flash('Link updated successfully.')
         return redirect(url_for('my_links'))
     else:
-        # Pre-fill the tags field
         form.tags.data = ' '.join([tag.name for tag in link.tags])
+        form.extract.data = link.extract
     return render_template('edit_link.html', form=form, link=link)
+
+# app.py
+@app.route('/extract/<int:link_id>')
+@login_required
+def view_extract(link_id):
+    link = Link.query.get_or_404(link_id)
+    # Check permissions: if link is private and not owned by the current user, abort
+    if link.private and link.user_id != current_user.id:
+        abort(403)
+    if not link.extract:
+        flash('No extract available for this link.')
+        return redirect(url_for('index'))
+    return render_template('extract.html', link=link)
 
 # Mark link as read
 @app.route('/read/<int:link_id>')

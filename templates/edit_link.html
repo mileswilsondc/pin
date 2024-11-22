@@ -1,4 +1,5 @@
 <!-- templates/edit_link.html -->
+
 {% extends 'base.html' %}
 
 {% block content %}
@@ -36,6 +37,18 @@
             {% if form.tags.errors %}
                 <ul class="errors">
                     {% for error in form.tags.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            {{ form.extract.label(class="form-label") }}
+            {{ form.extract(class="form-textarea", placeholder="Enter the extract") }}
+            {% if form.extract.errors %}
+                <ul class="errors">
+                    {% for error in form.extract.errors %}
                         <li>{{ error }}</li>
                     {% endfor %}
                 </ul>

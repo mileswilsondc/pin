@@ -1,7 +1,9 @@
+<!-- templates/faq.html -->
+
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>Frequently Questioned Answers</h1>
+<h1>Frequently Asked Questions</h1>
 
 <h3>What is this?</h3>
 <p>Pinboard is a bookmarking and bookmark organization service.</p>
@@ -10,9 +12,17 @@
 <p>Though you can add them interactively <a href="{{ url_for('submit_link')}}">here</a>, the site is designed to be used primarily through bookmarklets.</p>
 <p>Here are the bookmarklets offered:</p>
 <ul>
-<li><a href="https://pin.mileswilson.net/bookmarklet/pin-this" class="bookmarklet">Pin This</a> - Submit current page to your pinboard</li>
-<li><a href="{{ url_for('my_links') }}" class="bookmarklet">My Pinboard</a> - Link to your pinboard</li>
-<li><a href="{{ url_for('unread_links) }}" class="bookmarklet">Reading List</a> - Link to your read later list</li>
-<li><a href="https://pin.mileswilson.net/bookmarklet/readlater" class="bookmarklet">Read Later</a> - Submit current link to readlater</li>
+    <li>
+        <a href="javascript:(function(){ var url = encodeURIComponent(window.location.href); var title = encodeURIComponent(document.title); window.open('{{ url_for('submit_link') }}?url=' + url + '&title=' + title, '_blank'); })()" class="bookmarklet">Pin This</a> - Submit current page to your pinboard
+    </li>
+    <li>
+        <a href="{{ url_for('my_links') }}" class="bookmarklet">My Pinboard</a> - Link to your pinboard
+    </li>
+    <li>
+        <a href="{{ url_for('unread_links') }}" class="bookmarklet">Reading List</a> - Link to your read later list
+    </li>
+    <li>
+        <a href="javascript:(function(){ var url = encodeURIComponent(window.location.href); var title = encodeURIComponent(document.title); window.open('{{ url_for('submit_link') }}?url=' + url + '&title=' + title + '&read_later=true', '_blank'); })()" class="bookmarklet">Read Later</a> - Submit current link to read later
+    </li>
 </ul>
 {% endblock %}

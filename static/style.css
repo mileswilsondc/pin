@@ -153,3 +153,40 @@ nav .logo {
     text-transform: lowercase;
     font: inherit;
 }
+
+.manipulate a.extract {
+    color: lightgray;
+    text-transform: lowercase;
+    margin-right: 10px;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.manipulate a.extract:hover {
+    color: #555;
+    text-decoration: underline;
+}
+
+.manipulate a.edit,
+.manipulate a.extract {
+    margin-right: 10px;
+}
+
+.manipulate a.action-link,
+.manipulate button.action-link {
+    color: lightgray;
+    text-transform: lowercase;
+    margin-right: 5px;
+    text-decoration: none;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+}
+
+.manipulate a.action-link:hover,
+.manipulate button.action-link:hover {
+    color: #555;
+    text-decoration: underline;
+}

@@ -29,6 +29,7 @@ class Link(db.Model):
     url = db.Column(db.String(2048), nullable=False)
     title = db.Column(db.String(256), nullable=False)
     description = db.Column(db.Text)
+    extract = db.Column(db.Text)
     private = db.Column(db.Boolean, default=False)
     read_later = db.Column(db.Boolean, default=False)
     archive_url = db.Column(db.String(256))

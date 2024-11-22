@@ -17,6 +17,7 @@ class LinkForm(FlaskForm):
     url = StringField('URL', validators=[DataRequired(), URL()])
     title = StringField('Title', validators=[DataRequired()])
     description = TextAreaField('Description')
+    extract = TextAreaField('Extract')
     tags = StringField('Tags (separated by spaces)')
     private = BooleanField('Private')
     read_later = BooleanField('Read Later')
@@ -26,6 +27,7 @@ class LinkForm(FlaskForm):
 class EditLinkForm(FlaskForm):
     title = StringField('Title', validators=[DataRequired()])
     description = TextAreaField('Description')
+    extract = TextAreaField('Extract')
     tags = StringField('Tags (separated by spaces)')
     private = BooleanField('Private')
     read_later = BooleanField('Read Later')
