@@ -3,7 +3,7 @@
 {% from 'macros.html' import link_item %}
 
 {% block content %}
-<h1>Links tagged with "{{ tag.name }}"</h1>
+    <h1>Links tagged with "{{ tag.name }}"</h1>
     {% for link in links %}
         {{ link_item(link, show_user=True, current_user=current_user) }}
     {% endfor %}

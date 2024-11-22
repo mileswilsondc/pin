@@ -3,11 +3,11 @@
 {% from 'macros.html' import link_item %}
 
 {% block content %}
-<h1>Links to Read Later</h1>
+    <h1>Links to Read Later</h1>
     {% if links %}
-    {% for link in links %}
-        {{ link_item(link, show_user=False, current_user=current_user) }}
-    {% endfor %}
+        {% for link in links %}
+            {{ link_item(link, show_user=False, current_user=current_user) }}
+        {% endfor %}
     {% else %}
         <p>No saved links. <a href="{{ url_for('submit_link') }}">Add some.</a></p>
     {% endif %}

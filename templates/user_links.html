@@ -3,11 +3,11 @@
 {% from 'macros.html' import link_item %}
 
 {% block content %}
-<div class="small-username"><b>{{ user.username }}</b></div>
+    <div class="small-username"><b>{{ user.username }}</b></div>
     {% if links %}
-    {% for link in links %}
-        {{ link_item(link, show_user=False, current_user=current_user) }}
-    {% endfor %}
+        {% for link in links %}
+            {{ link_item(link, show_user=False, current_user=current_user) }}
+        {% endfor %}
     {% else %}
         <p>This user has no links.</p>
     {% endif %}

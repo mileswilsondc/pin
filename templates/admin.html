@@ -2,24 +2,24 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>Admin Page</h1>
-<h2>Registered Users</h2>
-<table class="admin-table">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Username</th>
-            <th>Admin</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for user in users %}
-        <tr>
-            <td>{{ user.id }}</td>
-            <td>{{ user.username }}</td>
-            <td>{{ 'Yes' if user.admin else 'No' }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+    <h1>Admin Page</h1>
+    <h2>Registered Users</h2>
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Admin</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ 'Yes' if user.admin else 'No' }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 {% endblock %}
