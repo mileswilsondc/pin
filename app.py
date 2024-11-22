@@ -101,12 +101,15 @@ def submit_link():
     if request.method == 'GET':
         url = request.args.get('url')
         title = request.args.get('title')
+        tags = request.args.get('tags')  # Add this line to retrieve tags
         read_later = request.args.get('read_later')
         
         if url:
             form.url.data = unquote(url)
         if title:
             form.title.data = unquote(title)
+        if tags:
+            form.tags.data = unquote(tags)  # Pre-fill tags
         if read_later and read_later.lower() == 'true':
             form.read_later.data = True
 

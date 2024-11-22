@@ -190,3 +190,15 @@ nav .logo {
     color: #555;
     text-decoration: underline;
 }
+
+.copy-link {
+    color: #007bff;
+    text-decoration: none;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+.copy-link:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}

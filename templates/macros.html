@@ -36,6 +36,11 @@
                     <a class="action-link" href="{{ url_for('mark_as_read', link_id=link.id) }}">Mark as Read</a>
                 {% endif %}
             {% endif %}
+            {% if current_user.id != link.user_id %}
+                <a class="action-link copy-link" href="{{ url_for('submit_link', url=link.url, title=link.title, tags=link.tags | map(attribute='name') | join(' ') ) }}" onclick="return confirm('Do you want to copy this link to your collection?');">
+                    Copy to mine
+                </a>
+            {% endif %}
         </span>
     </div>
 {% endmacro %}
