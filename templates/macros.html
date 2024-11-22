@@ -6,6 +6,9 @@
             {% endif %}>
             {{ link.title }}
         </a>
+        {% if current_user.is_authenticated and current_user.display_url_under_title %}
+            <a href="{{ link.url }}"><div class="bookmark-url">{{ link.url }}</div></a>
+        {% endif %}
         {% if link.description %}
             <div class="description">
                 {{ link.description }}

@@ -226,3 +226,10 @@ nav .logo {
     color: #721c24;
     border: 1px solid #f5c6cb;
 }
+
+.bookmark-url {
+    font-size: 0.9em;
+    color: gray;
+    margin-top: 4px;
+    word-break: break-all;
+}
