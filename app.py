@@ -159,15 +159,52 @@ def submit_link():
 def my_links():
     return redirect(url_for('user_links', username=current_user.username))
 
-# User's links
 @app.route('/user/<username>')
 def user_links(username):
     user = User.query.filter_by(username=username).first_or_404()
-    if current_user.is_authenticated and current_user.username == username:
+    is_owner = current_user.is_authenticated and current_user.username == username
+
+    if is_owner:
         links = Link.query.filter_by(user_id=user.id).order_by(Link.id.desc()).all()
     else:
         links = Link.query.filter_by(user_id=user.id, private=False).order_by(Link.id.desc()).all()
-    return render_template('user_links.html', links=links, user=user)
+
+    # Compute tag counts
+    tag_counts = {}
+    for link in links:
+        for tag in link.tags:
+            # Skip hidden tags for other users
+            if tag.name.startswith('.') and not is_owner:
+                continue
+            tag_counts[tag.name] = tag_counts.get(tag.name, 0) + 1
+
+    # Sort and limit to top x tags
+    top_x = 100
+    sorted_tags = sorted(tag_counts.items(), key=lambda x: x[1], reverse=True)[:top_x]
+    # Now sort alphabetically
+    sorted_tags.sort(key=lambda x: x[0])
+
+    # Compute font sizes
+    counts = [count for name, count in sorted_tags]
+    if counts:
+        max_count = max(counts)
+        min_count = min(counts)
+    else:
+        max_count = min_count = 1  # Avoid division by zero
+
+    def map_count_to_size(count, min_count, max_count, min_size=10, max_size=30):
+        if max_count == min_count:
+            return int((max_size + min_size) / 2)
+        else:
+            size = min_size + (count - min_count) * (max_size - min_size) / (max_count - min_count)
+            return int(round(size))
+
+    tags_with_sizes = []
+    for name, count in sorted_tags:
+        size = map_count_to_size(count, min_count, max_count)
+        tags_with_sizes.append({'name': name, 'count': count, 'size': size})
+
+    return render_template('user_links.html', links=links, user=user, tags=tags_with_sizes)
 
 # Browse by tag
 @app.route('/tag/<tag_name>')
