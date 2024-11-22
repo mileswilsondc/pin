@@ -9,7 +9,7 @@ from flask_login import (
     current_user,
 )
 from models import db, User, Link, Tag
-from forms import RegistrationForm, LoginForm, LinkForm, EditLinkForm, PreferencesForm  # Import PreferencesForm
+from forms import RegistrationForm, LoginForm, LinkForm, EditLinkForm, PreferencesForm
 from archive import archive_page
 from datetime import datetime
 import time
@@ -256,12 +256,21 @@ def delete_link(link_id):
 def preferences():
     form = PreferencesForm(user=current_user)
     if form.validate_on_submit():
+        # Update password only if a new password is provided
         if form.new_password.data:
+            if not form.current_password.data:
+                flash('Current password is required to change your password.', 'error')
+                return render_template('preferences.html', form=form)
+            if not current_user.check_password(form.current_password.data):
+                flash('Current password is incorrect.', 'error')
+                return render_template('preferences.html', form=form)
             current_user.set_password(form.new_password.data)
+            flash('Your password has been updated.', 'success')
         
+        # Update other preferences
         current_user.language = form.language.data
         current_user.timezone = form.timezone.data
-        
+
         current_user.tag_autocompletion = form.tag_autocompletion.data
         current_user.sort_tags_by_frequency = form.sort_tags_by_frequency.data
         current_user.use_return_key_for_autocomplete = form.use_return_key_for_autocomplete.data
@@ -280,9 +289,10 @@ def preferences():
         current_user.enable_privacy_mode = form.enable_privacy_mode.data
 
         db.session.commit()
-        flash('Your preferences have been updated.')
+        flash('Your preferences have been updated.', 'success')
         return redirect(url_for('index'))
     return render_template('preferences.html', form=form)
+
 
 # Admin Page
 @app.route('/admin')

@@ -1,7 +1,7 @@
 # forms.py
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, TextAreaField, BooleanField, SubmitField, SelectField
-from wtforms.validators import DataRequired, URL, EqualTo, ValidationError
+from wtforms.validators import DataRequired, URL, EqualTo, ValidationError, Optional
 
 class RegistrationForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
@@ -35,12 +35,12 @@ class EditLinkForm(FlaskForm):
 
 class PreferencesForm(FlaskForm):
     # Password Fields
-    current_password = PasswordField('Current Password', validators=[DataRequired()])
+    current_password = PasswordField('Current Password', validators=[Optional()])
     new_password = PasswordField('New Password', validators=[
-        DataRequired(),
+        Optional(),
         EqualTo('confirm_new_password', message='Passwords must match')
     ])
-    confirm_new_password = PasswordField('Confirm New Password', validators=[DataRequired()])
+    confirm_new_password = PasswordField('Confirm New Password', validators=[Optional()])
     
     language = SelectField('Language', choices=[
         ('en', 'English'),
@@ -132,30 +132,36 @@ class PreferencesForm(FlaskForm):
     enable_privacy_mode = BooleanField('Enable Privacy Mode')
     
     submit = SubmitField('Update')
-    
+
     def __init__(self, user, *args, **kwargs):
         super(PreferencesForm, self).__init__(*args, **kwargs)
         self.user = user
-        
-        self.language.data = user.language
-        self.timezone.data = user.timezone
-        self.tag_autocompletion.data = user.tag_autocompletion
-        self.sort_tags_by_frequency.data = user.sort_tags_by_frequency
-        self.use_return_key_for_autocomplete.data = user.use_return_key_for_autocomplete
-        self.mark_toread_as_read_on_click.data = user.mark_toread_as_read_on_click
-        self.open_links_in_new_window.data = user.open_links_in_new_window
-        self.enable_keyboard_shortcuts.data = user.enable_keyboard_shortcuts
-        self.subscribe_to_tags.data = user.subscribe_to_tags
-        self.part_of_fandom.data = user.part_of_fandom
-        self.enable_tag_bundles.data = user.enable_tag_bundles
-        self.always_show_tags_alphabetical.data = user.always_show_tags_alphabetical
-        self.display_url_under_title.data = user.display_url_under_title
-        self.show_global_bookmark_counts.data = user.show_global_bookmark_counts
-        self.show_exact_datetime_on_bookmarks.data = user.show_exact_datetime_on_bookmarks
-        self.add_bookmarks_private_by_default.data = user.add_bookmarks_private_by_default
-        self.enable_public_profile.data = user.enable_public_profile
-        self.enable_privacy_mode.data = user.enable_privacy_mode
+
+        if not self.is_submitted():
+            # Initialize form fields with user's current settings
+            self.language.data = user.language
+            self.timezone.data = user.timezone
+            self.tag_autocompletion.data = user.tag_autocompletion
+            self.sort_tags_by_frequency.data = user.sort_tags_by_frequency
+            self.use_return_key_for_autocomplete.data = user.use_return_key_for_autocomplete
+            self.mark_toread_as_read_on_click.data = user.mark_toread_as_read_on_click
+            self.open_links_in_new_window.data = user.open_links_in_new_window
+            self.enable_keyboard_shortcuts.data = user.enable_keyboard_shortcuts
+            self.subscribe_to_tags.data = user.subscribe_to_tags
+            self.part_of_fandom.data = user.part_of_fandom
+            self.enable_tag_bundles.data = user.enable_tag_bundles
+            self.always_show_tags_alphabetical.data = user.always_show_tags_alphabetical
+            self.display_url_under_title.data = user.display_url_under_title
+            self.show_global_bookmark_counts.data = user.show_global_bookmark_counts
+            self.show_exact_datetime_on_bookmarks.data = user.show_exact_datetime_on_bookmarks
+            self.add_bookmarks_private_by_default.data = user.add_bookmarks_private_by_default
+            self.enable_public_profile.data = user.enable_public_profile
+            self.enable_privacy_mode.data = user.enable_privacy_mode
 
     def validate_current_password(self, field):
-        if not self.user.check_password(field.data):
-            raise ValidationError('Current password is incorrect.')
+        # Only validate if new_password is provided
+        if self.new_password.data:
+            if not field.data:
+                raise ValidationError('Current password is required to change your password.')
+            if not self.user.check_password(field.data):
+                raise ValidationError('Current password is incorrect.')

@@ -6,7 +6,8 @@
     <form method="post" class="form">
         {{ form.hidden_tag() }}
 
-        <h2>Change Password</h2>
+        <h2>Change Password (Optional)</h2>
+        <p>If you want to change your password, please fill out the fields below. Otherwise, leave them blank.</p>
         <div class="form-group">
             {{ form.current_password.label(class="form-label") }}
             {{ form.current_password(class="form-input", placeholder="Enter your current password") }}
@@ -91,10 +92,10 @@
             {{ form.mark_toread_as_read_on_click.label(class="form-label") }}
         </div> -->
         
-        <!-- <div class="form-checkbox">
+        <div class="form-checkbox">
             {{ form.open_links_in_new_window() }}
             {{ form.open_links_in_new_window.label(class="form-label") }}
-        </div> -->
+        </div>
         
         <!-- <div class="form-checkbox">
             {{ form.enable_keyboard_shortcuts() }}
@@ -111,10 +112,10 @@
             {{ form.enable_tag_bundles.label(class="form-label") }}
         </div> -->
         
-        <!-- <div class="form-checkbox">
+        <div class="form-checkbox">
             {{ form.always_show_tags_alphabetical() }}
             {{ form.always_show_tags_alphabetical.label(class="form-label") }}
-        </div> -->
+        </div>
         
         <!-- <div class="form-checkbox">
             {{ form.display_url_under_title() }}

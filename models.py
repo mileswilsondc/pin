@@ -15,11 +15,11 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
     password_hash = db.Column(db.String(128))
-    admin = db.Column(db.Boolean, default=False)  # Existing admin flag
+    admin = db.Column(db.Boolean, default=False)
     links = db.relationship('Link', backref='user', lazy='dynamic')
     
     language = db.Column(db.String(32), default='en')
-    timezone = db.Column(db.String(64), default='UTC')
+    timezone = db.Column(db.String(64), default='Etc/UTC')
     
     tag_autocompletion = db.Column(db.Boolean, default=True)
     sort_tags_by_frequency = db.Column(db.Boolean, default=False)

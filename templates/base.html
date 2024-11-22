@@ -16,7 +16,7 @@
             <a href="{{ url_for('submit_link') }}">Add pin</a>
             <a href="{{ url_for('my_links') }}">My links</a>
             <a href="{{ url_for('unread_links') }}">Read later</a>
-            <a href="{{ url_for('faq') }}">FAQ</a> <!-- Add this -->
+            <a href="{{ url_for('faq') }}">FAQ</a>
             <a href="{{ url_for('preferences') }}">Preferences</a>
             {% if current_user.admin %}
             <a href="{{ url_for('admin_page') }}">Admin</a>
@@ -29,11 +29,11 @@
             {% endif %}
         </nav>
         <hr>
-        {% with messages = get_flashed_messages() %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                <ul>
-                    {% for message in messages %}
-                        <li>{{ message }}</li>
+                <ul class="flash-messages">
+                    {% for category, message in messages %}
+                        <li class="flash-{{ category }}">{{ message }}</li>
                     {% endfor %}
                 </ul>
             {% endif %}
