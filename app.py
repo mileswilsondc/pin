@@ -98,21 +98,28 @@ def logout():
 def submit_link():
     form = LinkForm()
 
-    # Pre-fill form fields from query parameters if available
     if request.method == 'GET':
+        # Pre-fill form fields from query parameters if available
         url = request.args.get('url')
         title = request.args.get('title')
-        tags = request.args.get('tags')  # Add this line to retrieve tags
+        tags = request.args.get('tags')
         read_later = request.args.get('read_later')
-        
+        private_param = request.args.get('private')
+
         if url:
             form.url.data = unquote(url)
         if title:
             form.title.data = unquote(title)
         if tags:
-            form.tags.data = unquote(tags)  # Pre-fill tags
+            form.tags.data = unquote(tags)
         if read_later and read_later.lower() == 'true':
             form.read_later.data = True
+        
+        if private_param is not None:
+            form.private.data = private_param.lower() == 'true'
+        else:
+            # Set 'private' based on user preference
+            form.private.data = current_user.add_bookmarks_private_by_default
 
     if form.validate_on_submit():
         # Create a new Link instance
