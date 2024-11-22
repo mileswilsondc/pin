@@ -3,25 +3,25 @@
 {% from 'macros.html' import link_item %}
 
 {% block content %}
-    <div class="small-username"><b>{{ user.username }}</b></div>
-    
-    {% if tags %}
-        <div class="tag-cloud">
-            {% for tag in tags %}
-                <a href="{{ url_for('tag_links', tag_name=tag.name) }}"
-                   style="font-size: {{ tag.size }}px;"
-                   class="tag-cloud-link">
-                    {{ tag.name }}
-                </a>
-            {% endfor %}
-        </div>
-    {% endif %}
-    
-    {% if links %}
-        {% for link in links %}
-            {{ link_item(link, show_user=False, current_user=current_user) }}
-        {% endfor %}
-    {% else %}
-        <p>This user has no links.</p>
-    {% endif %}
+<div class="small-username"><b>{{ user.username }}</b></div>
+
+{% if tags %}
+<div class="tag-cloud">
+    {% for tag in tags %}
+    <a href="{{ url_for('tag_links', tag_name=tag.name) }}"
+    style="font-size: {{ tag.size }}px;"
+    class="tag-cloud-link">
+    {{ tag.name }}
+</a>
+{% endfor %}
+</div>
+{% endif %}
+
+{% if links %}
+{% for link in links %}
+{{ link_item(link, show_user=False, current_user=current_user) }}
+{% endfor %}
+{% else %}
+<p>This user has no links.</p>
+{% endif %}
 {% endblock %}

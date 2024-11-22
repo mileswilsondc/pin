@@ -3,10 +3,10 @@
 {% from 'macros.html' import link_item %}
 
 {% block content %}
-    <i>Extract from:</i>
-    {{ link_item(link, show_user=True, current_user=current_user) }}
-    <hr>
-    <div class="extract-content">
-        {{ link.extract | replace('\n', '<br>') | safe }}
-    </div>
+<i>Extract from:</i>
+{{ link_item(link, show_user=True, current_user=current_user) }}
+<hr>
+<div class="extract-content">
+    {{ link.extract | replace('\n', '<br>') | safe }}
+</div>
 {% endblock %}

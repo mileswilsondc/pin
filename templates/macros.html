@@ -1,61 +1,61 @@
 {% macro link_item(link, show_user=True, current_user=None) %}
-    <div class="bookmark">
-        <a class="bookmark-title" href="{{ link.url }}"
-            {% if current_user.is_authenticated and current_user.open_links_in_new_window %}
-               target="_blank" rel="noopener noreferrer"
-            {% endif %}>
-            {{ link.title }}
-        </a>
-        {% if current_user.is_authenticated and current_user.display_url_under_title %}
-            <a href="{{ link.url }}"><div class="bookmark-url">{{ link.url }}</div></a>
-        {% endif %}
-        {% if link.description %}
-            <div class="description">
-                {{ link.description }}
-            </div>
-        {% endif %}
-        {% if link.tags %}
-            <div class="tags">
-                {% set tags = link.tags %}
-                {% if current_user.is_authenticated and current_user.always_show_tags_alphabetical %}
-                    {% set tags = tags|sort(attribute='name') %}
-                {% endif %}
-                {% for tag in tags %}
-                    {% if not tag.name.startswith('.') or (current_user and current_user.is_authenticated and link.user_id == current_user.id) %}
-                        <a class="tag" href="{{ url_for('tag_links', tag_name=tag.name) }}">{{ tag.name }}</a>
-                    {% endif %}
-                {% endfor %}
-            </div>
-            {% if current_user.is_authenticated and current_user.show_exact_datetime_on_bookmarks %}
-                <span class="saved-on when">{{ link.created_at | format_datetime(current_user.timezone) }}</span>
-            {% else %}
-                <span class="saved-on when">{{ link.created_at | format_relative_time }}</span>
-            {% endif %}    
-            {% if show_user and link.user %}
-                by <a href="{{ url_for('user_links', username=link.user.username) }}">{{ link.user.username }}</a>
-            {% endif %}
-        {% endif %}
+<div class="bookmark">
+    <a class="bookmark-title" href="{{ link.url }}"
+    {% if current_user.is_authenticated and current_user.open_links_in_new_window %}
+    target="_blank" rel="noopener noreferrer"
+    {% endif %}>
+    {{ link.title }}
+</a>
+{% if current_user.is_authenticated and current_user.display_url_under_title %}
+<a href="{{ link.url }}"><div class="bookmark-url">{{ link.url }}</div></a>
+{% endif %}
+{% if link.description %}
+<div class="description">
+    {{ link.description }}
+</div>
+{% endif %}
+{% if link.tags %}
+<div class="tags">
+    {% set tags = link.tags %}
+    {% if current_user.is_authenticated and current_user.always_show_tags_alphabetical %}
+    {% set tags = tags|sort(attribute='name') %}
+    {% endif %}
+    {% for tag in tags %}
+    {% if not tag.name.startswith('.') or (current_user and current_user.is_authenticated and link.user_id == current_user.id) %}
+    <a class="tag" href="{{ url_for('tag_links', tag_name=tag.name) }}">{{ tag.name }}</a>
+    {% endif %}
+    {% endfor %}
+</div>
+{% if current_user.is_authenticated and current_user.show_exact_datetime_on_bookmarks %}
+<span class="saved-on when">{{ link.created_at | format_datetime(current_user.timezone) }}</span>
+{% else %}
+<span class="saved-on when">{{ link.created_at | format_relative_time }}</span>
+{% endif %}    
+{% if show_user and link.user %}
+by <a href="{{ url_for('user_links', username=link.user.username) }}">{{ link.user.username }}</a>
+{% endif %}
+{% endif %}
 
-        <span class="manipulate">
-            {% if link.extract %}
-                <a class="action-link extract" href="{{ url_for('view_extract', link_id=link.id) }}">Extract</a>
-            {% endif %}
-            {% if current_user and current_user.is_authenticated and link.user_id == current_user.id %}
-                <a class="action-link edit" href="{{ url_for('edit_link', link_id=link.id) }}">Edit</a>
-                <form action="{{ url_for('delete_link', link_id=link.id) }}" method="post" class="delete-form">
-                    <!-- Correctly include the CSRF token as a hidden input -->
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="action-link delete-link">Delete</button>
-                </form>
-                {% if link.read_later %}
-                    <a class="action-link" href="{{ url_for('mark_as_read', link_id=link.id) }}">Mark as Read</a>
-                {% endif %}
-            {% endif %}
-            {% if current_user and current_user.is_authenticated and current_user.id != link.user_id %}
-                <a class="action-link copy-link" href="{{ url_for('submit_link', url=link.url, title=link.title, tags=link.tags | map(attribute='name') | join(' ') ) }}" onclick="return confirm('Do you want to copy this link to your collection?');">
-                    Copy to mine
-                </a>
-            {% endif %}
-        </span>
-    </div>
+<span class="manipulate">
+    {% if link.extract %}
+    <a class="action-link extract" href="{{ url_for('view_extract', link_id=link.id) }}">Extract</a>
+    {% endif %}
+    {% if current_user and current_user.is_authenticated and link.user_id == current_user.id %}
+    <a class="action-link edit" href="{{ url_for('edit_link', link_id=link.id) }}">Edit</a>
+    <form action="{{ url_for('delete_link', link_id=link.id) }}" method="post" class="delete-form">
+        <!-- Correctly include the CSRF token as a hidden input -->
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="action-link delete-link">Delete</button>
+    </form>
+    {% if link.read_later %}
+    <a class="action-link" href="{{ url_for('mark_as_read', link_id=link.id) }}">Mark as Read</a>
+    {% endif %}
+    {% endif %}
+    {% if current_user and current_user.is_authenticated and current_user.id != link.user_id %}
+    <a class="action-link copy-link" href="{{ url_for('submit_link', url=link.url, title=link.title, tags=link.tags | map(attribute='name') | join(' ') ) }}" onclick="return confirm('Do you want to copy this link to your collection?');">
+        Copy to mine
+    </a>
+    {% endif %}
+</span>
+</div>
 {% endmacro %}
