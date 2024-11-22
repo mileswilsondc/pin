@@ -254,3 +254,127 @@ nav .logo {
     color: #000;
     text-decoration: underline;
 }
+
+/* Add to your existing static/style.css */
+
+/* Recent Links Section */
+.recent-links {
+    list-style-type: none;
+    padding: 0;
+}
+
+.recent-links li {
+    margin-bottom: 0.5em;
+}
+
+.recent-links a {
+    font-weight: bold;
+}
+
+.recent-links .when {
+    color: #777;
+    font-size: 0.9em;
+    margin-left: 10px;
+}
+
+/* User Management Section */
+.user-management {
+    margin-bottom: 2em;
+}
+
+.user-management h3 {
+    margin-bottom: 0.5em;
+}
+
+.user-management fieldset {
+    border: 1px solid #ddd;
+    padding: 1em;
+    margin-bottom: 1em;
+}
+
+.user-management legend {
+    font-weight: bold;
+}
+
+.form-checkbox {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5em;
+}
+
+.form-checkbox input {
+    margin-right: 0.5em;
+}
+
+.form-button:hover {
+    background-color: #0056b3;
+}
+
+section h2 {
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+}
+
+.recent-links {
+    list-style-type: none;
+    padding: 0;
+}
+
+.recent-links li {
+    margin-bottom: 0.5em;
+}
+
+.recent-links a {
+    font-weight: bold;
+}
+
+.recent-links .when {
+    color: #777;
+    font-size: 0.9em;
+    margin-left: 10px;
+}
+
+/* User Management Section */
+.user-management {
+    margin-bottom: 2em;
+}
+
+.user-management h3 {
+    margin-bottom: 0.5em;
+}
+
+.user-management fieldset {
+    border: 1px solid #ddd;
+    padding: 1em;
+    margin-bottom: 1em;
+}
+
+.user-management legend {
+    font-weight: bold;
+}
+
+.form-checkbox {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5em;
+}
+
+.form-checkbox input {
+    margin-right: 0.5em;
+}
+
+.flash-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.flash-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+section {
+    margin-bottom: 2em;
+}

@@ -2,24 +2,260 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>Admin Page</h1>
-    <h2>Registered Users</h2>
-    <table class="admin-table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Username</th>
-                <th>Admin</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for user in users %}
-                <tr>
-                    <td>{{ user.id }}</td>
-                    <td>{{ user.username }}</td>
-                    <td>{{ 'Yes' if user.admin else 'No' }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<h1>Admin Dashboard</h1>
+
+<!-- Section: Recent Links -->
+<section>
+    <h2>10 Most Recently Submitted Links</h2>
+    {% if recent_links %}
+    <ul class="recent-links">
+        {% for link in recent_links %}
+        <li>
+            <a href="{{ link.url }}" {% if current_user.open_links_in_new_window %}target="_blank" rel="noopener noreferrer"{% endif %}>
+                {{ link.title }}
+            </a>
+            by <a href="{{ url_for('user_links', username=link.user.username) }}">{{ link.user.username }}</a>
+            <span class="when">{{ link.created_at | format_relative_time }}</span>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>No links have been submitted yet.</p>
+    {% endif %}
+</section>
+
+<hr>
+
+<!-- Section: Register New User -->
+<section>
+    <h2>Register New User</h2>
+    <form method="post" class="form">
+        {{ registration_form.hidden_tag() }}
+        
+        <div class="form-group">
+            {{ registration_form.username.label(class="form-label") }}
+            {{ registration_form.username(class="form-input", placeholder="Enter username") }}
+            {% if registration_form.username.errors %}
+            <ul class="errors">
+                {% for error in registration_form.username.errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            {{ registration_form.password.label(class="form-label") }}
+            {{ registration_form.password(class="form-input", placeholder="Enter password") }}
+            {% if registration_form.password.errors %}
+            <ul class="errors">
+                {% for error in registration_form.password.errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            {{ registration_form.confirm_password.label(class="form-label") }}
+            {{ registration_form.confirm_password(class="form-input", placeholder="Confirm password") }}
+            {% if registration_form.confirm_password.errors %}
+            <ul class="errors">
+                {% for error in registration_form.confirm_password.errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+        
+        <div class="form-checkbox">
+            {{ registration_form.admin() }}
+            {{ registration_form.admin.label(class="form-label") }}
+        </div>
+        
+        <div class="form-group">
+            {{ registration_form.submit(class="form-button") }}
+        </div>
+    </form>
+</section>
+
+<hr>
+
+<!-- Section: User Management -->
+<section>
+    <h2>Manage Users</h2>
+    {% for user in users %}
+    <div class="user-management">
+        <h3>User: {{ user.username }} {% if user.admin %}(Admin){% endif %}</h3>
+        <form method="post" class="form" action="{{ url_for('admin_page') }}">
+            {{ edit_forms[user.id].hidden_tag() }}
+            <input type="hidden" name="user_id" value="{{ user.id }}">
+            
+            <!-- Password Fields -->
+            <fieldset>
+                <legend>Change Password</legend>
+                <div class="form-group">
+                    {{ edit_forms[user.id].new_password.label(class="form-label") }}
+                    {{ edit_forms[user.id].new_password(class="form-input", placeholder="New Password") }}
+                    {% if edit_forms[user.id].new_password.errors %}
+                    <ul class="errors">
+                        {% for error in edit_forms[user.id].new_password.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    {{ edit_forms[user.id].confirm_new_password.label(class="form-label") }}
+                    {{ edit_forms[user.id].confirm_new_password(class="form-input", placeholder="Confirm New Password") }}
+                    {% if edit_forms[user.id].confirm_new_password.errors %}
+                    <ul class="errors">
+                        {% for error in edit_forms[user.id].confirm_new_password.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+            </fieldset>
+            
+            <!-- Preferences Fields -->
+            <fieldset>
+                <legend>Preferences</legend>
+                <div class="form-group">
+                    {{ edit_forms[user.id].language.label(class="form-label") }}
+                    {{ edit_forms[user.id].language(class="form-select") }}
+                    {% if edit_forms[user.id].language.errors %}
+                    <ul class="errors">
+                        {% for error in edit_forms[user.id].language.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    {{ edit_forms[user.id].timezone.label(class="form-label") }}
+                    {{ edit_forms[user.id].timezone(class="form-select") }}
+                    {% if edit_forms[user.id].timezone.errors %}
+                    <ul class="errors">
+                        {% for error in edit_forms[user.id].timezone.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+                
+                <!-- Checkbox Preferences -->
+                <div class="form-checkbox">
+                    {{ edit_forms[user.id].tag_autocompletion() }}
+                    {{ edit_forms[user.id].tag_autocompletion.label(class="form-label") }}
+                </div>
+                
+                <div class="form-checkbox">
+                    {{ edit_forms[user.id].sort_tags_by_frequency() }}
+                    {{ edit_forms[user.id].sort_tags_by_frequency.label(class="form-label") }}
+                </div>
+                
+                <div class="form-checkbox">
+                    {{ edit_forms[user.id].use_return_key_for_autocomplete() }}
+                    {{ edit_forms[user.id].use_return_key_for_autocomplete.label(class="form-label") }}
+                </div>
+                
+                <div class="form-checkbox">
+                    {{ edit_forms[user.id].mark_toread_as_read_on_click() }}
+                    {{ edit_forms[user.id].mark_toread_as_read_on_click.label(class="form-label") }}
+                </div>
+                
+                <div class="form-checkbox">
+                    {{ edit_forms[user.id].open_links_in_new_window() }}
+                    {{ edit_forms[user.id].open_links_in_new_window.label(class="form-label") }}
+                </div>
+                
+                <div class="form-checkbox">
+                    {{ edit_forms[user.id].enable_keyboard_shortcuts() }}
+                    {{ edit_forms[user.id].enable_keyboard_shortcuts.label(class="form-label") }}
+                </div>
+                
+                <div class="form-checkbox">
+                    {{ edit_forms[user.id].subscribe_to_tags() }}
+                    {{ edit_forms[user.id].subscribe_to_tags.label(class="form-label") }}
+                </div>
+                
+                <div class="form-checkbox">
+                    {{ edit_forms[user.id].part_of_fandom() }}
+                    {{ edit_forms[user.id].part_of_fandom.label(class="form-label") }}
+                </div>
+                
+                <div class="form-checkbox">
+                    {{ edit_forms[user.id].enable_tag_bundles() }}
+                    {{ edit_forms[user.id].enable_tag_bundles.label(class="form-label") }}
+                </div>
+                
+                <div class="form-checkbox">
+                    {{ edit_forms[user.id].always_show_tags_alphabetical() }}
+                    {{ edit_forms[user.id].always_show_tags_alphabetical.label(class="form-label") }}
+                </div>
+                
+                <div class="form-checkbox">
+                    {{ edit_forms[user.id].display_url_under_title() }}
+                    {{ edit_forms[user.id].display_url_under_title.label(class="form-label") }}
+                </div>
+                
+                <div class="form-checkbox">
+                    {{ edit_forms[user.id].show_global_bookmark_counts() }}
+                    {{ edit_forms[user.id].show_global_bookmark_counts.label(class="form-label") }}
+                </div>
+                
+                <div class="form-checkbox">
+                    {{ edit_forms[user.id].show_exact_datetime_on_bookmarks() }}
+                    {{ edit_forms[user.id].show_exact_datetime_on_bookmarks.label(class="form-label") }}
+                </div>
+                
+                <div class="form-checkbox">
+                    {{ edit_forms[user.id].add_bookmarks_private_by_default() }}
+                    {{ edit_forms[user.id].add_bookmarks_private_by_default.label(class="form-label") }}
+                </div>
+                
+                <div class="form-checkbox">
+                    {{ edit_forms[user.id].enable_public_profile() }}
+                    {{ edit_forms[user.id].enable_public_profile.label(class="form-label") }}
+                </div>
+                
+                <div class="form-checkbox">
+                    {{ edit_forms[user.id].enable_privacy_mode() }}
+                    {{ edit_forms[user.id].enable_privacy_mode.label(class="form-label") }}
+                </div>
+            </fieldset>
+            
+            <div class="form-group">
+                {{ edit_forms[user.id].submit(class="form-button") }}
+            </div>
+        </form>
+        <!-- Section: User List -->
+        <section>
+            <h2>All Users</h2>
+            <table class="user-table">
+                <thead>
+                    <tr>
+                        <th>UID</th>
+                        <th>Username</th>
+                        <th>Admin</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>{{ user.username }}</td>
+                        <td>{{ 'Yes' if user.admin else 'No' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+        <hr>
+    </div>
+    {% endfor %}
+</section>
 {% endblock %}

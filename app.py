@@ -9,12 +9,11 @@ from flask_login import (
     current_user,
 )
 from models import db, User, Link, Tag
-from forms import RegistrationForm, LoginForm, LinkForm, EditLinkForm, PreferencesForm
+from forms import RegistrationForm, LoginForm, LinkForm, EditLinkForm, PreferencesForm, AdminEditUserForm, AdminRegistrationForm
 from archive import archive_page
 import pytz
 from datetime import datetime
 import time
-from functools import wraps  # For admin_required decorator
 from functools import wraps
 from flask_wtf import CSRFProtect
 from urllib.parse import unquote
@@ -338,13 +337,77 @@ def preferences():
         return redirect(url_for('index'))
     return render_template('preferences.html', form=form)
 
-
 # Admin Page
-@app.route('/admin')
+@app.route('/admin', methods=['GET', 'POST'])
 @admin_required
 def admin_page():
     users = User.query.all()
-    return render_template('admin.html', users=users)
+    recent_links = Link.query.order_by(Link.created_at.desc()).limit(10).all()
+    edit_forms = {}
+    registration_form = AdminRegistrationForm(prefix='register')
+
+    if request.method == 'POST':
+        # Determine which form was submitted based on the form prefix
+        if 'register-' in request.form.get('csrf_token', ''):
+            # Handle new user registration
+            if registration_form.validate_on_submit():
+                new_user = User(
+                    username=registration_form.username.data,
+                    admin=registration_form.admin.data,
+                    language='en',  # Default preferences; adjust as needed
+                    timezone='Etc/UTC'
+                )
+                new_user.set_password(registration_form.password.data)
+                db.session.add(new_user)
+                db.session.commit()
+                flash(f'User "{new_user.username}" has been successfully registered.', 'success')
+                return redirect(url_for('admin_page'))
+            else:
+                flash('Error registering new user. Please check the form for errors.', 'error')
+        else:
+            # Handle user edit forms
+            # Iterate through all users to check which form was submitted
+            for user in users:
+                form_prefix = f'user_{user.id}'
+                form = AdminEditUserForm(user=user, prefix=form_prefix, obj=user)  # Pass 'user' here
+                if form.validate_on_submit():
+                    # Update password if provided
+                    if form.new_password.data:
+                        user.set_password(form.new_password.data)
+                        flash(f'Password updated for user "{user.username}".', 'success')
+
+                    # Update preferences
+                    user.language = form.language.data
+                    user.timezone = form.timezone.data
+                    user.tag_autocompletion = form.tag_autocompletion.data
+                    user.sort_tags_by_frequency = form.sort_tags_by_frequency.data
+                    user.use_return_key_for_autocomplete = form.use_return_key_for_autocomplete.data
+                    user.mark_toread_as_read_on_click = form.mark_toread_as_read_on_click.data
+                    user.open_links_in_new_window = form.open_links_in_new_window.data
+                    user.enable_keyboard_shortcuts = form.enable_keyboard_shortcuts.data
+                    user.subscribe_to_tags = form.subscribe_to_tags.data
+                    user.part_of_fandom = form.part_of_fandom.data
+                    user.enable_tag_bundles = form.enable_tag_bundles.data
+                    user.always_show_tags_alphabetical = form.always_show_tags_alphabetical.data
+                    user.display_url_under_title = form.display_url_under_title.data
+                    user.show_global_bookmark_counts = form.show_global_bookmark_counts.data
+                    user.show_exact_datetime_on_bookmarks = form.show_exact_datetime_on_bookmarks.data
+                    user.add_bookmarks_private_by_default = form.add_bookmarks_private_by_default.data
+                    user.enable_public_profile = form.enable_public_profile.data
+                    user.enable_privacy_mode = form.enable_privacy_mode.data
+
+                    db.session.commit()
+                    flash(f'Preferences updated for user "{user.username}".', 'success')
+                    return redirect(url_for('admin_page'))
+            # If no form was matched
+            flash('Invalid form submission.', 'error')
+
+    # Initialize edit forms for each user
+    for user in users:
+        form = AdminEditUserForm(user=user, prefix=f'user_{user.id}', obj=user)  # Pass 'user' here
+        edit_forms[user.id] = form
+
+    return render_template('admin.html', users=users, recent_links=recent_links, edit_forms=edit_forms, registration_form=registration_form)
 
 def format_relative_time(dt):
     now = datetime.utcnow()
