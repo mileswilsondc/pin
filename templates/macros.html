@@ -23,7 +23,11 @@
                     {% endif %}
                 {% endfor %}
             </div>
-            <span class="saved-on when">{{ link.created_at | format_relative_time }}</span>    
+            {% if current_user.is_authenticated and current_user.show_exact_datetime_on_bookmarks %}
+                <span class="saved-on when">{{ link.created_at | format_datetime(current_user.timezone) }}</span>
+            {% else %}
+                <span class="saved-on when">{{ link.created_at | format_relative_time }}</span>
+            {% endif %}    
             {% if show_user and link.user %}
                 by <a href="{{ url_for('user_links', username=link.user.username) }}">{{ link.user.username }}</a>
             {% endif %}

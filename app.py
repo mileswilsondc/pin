@@ -11,6 +11,7 @@ from flask_login import (
 from models import db, User, Link, Tag
 from forms import RegistrationForm, LoginForm, LinkForm, EditLinkForm, PreferencesForm
 from archive import archive_page
+import pytz
 from datetime import datetime
 import time
 from functools import wraps  # For admin_required decorator
@@ -346,6 +347,16 @@ def inject_render_time():
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html'), 404
+
+def format_datetime(dt, timezone_str='Etc/UTC'):
+    try:
+        timezone = pytz.timezone(timezone_str)
+    except Exception:
+        timezone = pytz.utc
+    dt = dt.replace(tzinfo=pytz.utc).astimezone(timezone)
+    return dt.strftime('%Y-%m-%d %H:%M:%S %Z')
+
+app.jinja_env.filters['format_datetime'] = format_datetime
 
 if __name__ == '__main__':
     app.run(debug=True)
