@@ -33,7 +33,7 @@
 
         <div class="form-group">
             {{ form.tags.label(class="form-label") }}
-            {{ form.tags(class="form-input", placeholder="Enter tags separated by commas") }}
+            {{ form.tags(class="form-input", placeholder="Enter tags separated by spaces") }}
             {% if form.tags.errors %}
                 <ul class="errors">
                     {% for error in form.tags.errors %}

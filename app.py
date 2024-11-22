@@ -111,6 +111,7 @@ def submit_link():
             form.read_later.data = True
 
     if form.validate_on_submit():
+        # Create a new Link instance
         link = Link(
             url=form.url.data,
             title=form.title.data,
@@ -121,9 +122,24 @@ def submit_link():
             user_id=current_user.id
         )
         db.session.add(link)
+        db.session.flush()  # Flush to assign an ID to the link
+
+        # Process tags
+        tag_names = form.tags.data.split()
+        for name in tag_names:
+            name = name.strip().lower()  # Normalize tag names
+            if not name:
+                continue  # Skip empty tags
+            tag = Tag.query.filter_by(name=name).first()
+            if not tag:
+                tag = Tag(name=name)
+                db.session.add(tag)
+            link.tags.append(tag)
+
         db.session.commit()
         flash('Link submitted successfully.')
         return redirect(url_for('index'))
+    
     return render_template('submit.html', form=form)
 
 # User's own links
@@ -178,9 +194,13 @@ def edit_link(link_id):
         link.tags.clear()
         tag_list = form.tags.data.split()
         for tag_name in tag_list:
+            tag_name = tag_name.strip().lower()
+            if not tag_name:
+                continue
             tag = Tag.query.filter_by(name=tag_name).first()
             if not tag:
                 tag = Tag(name=tag_name)
+                db.session.add(tag)
             link.tags.append(tag)
 
         db.session.commit()
@@ -191,7 +211,6 @@ def edit_link(link_id):
         form.extract.data = link.extract
     return render_template('edit_link.html', form=form, link=link)
 
-# app.py
 @app.route('/extract/<int:link_id>')
 @login_required
 def view_extract(link_id):
