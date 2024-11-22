@@ -15,9 +15,29 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
     password_hash = db.Column(db.String(128))
-    admin = db.Column(db.Boolean, default=False)  # New admin flag
+    admin = db.Column(db.Boolean, default=False)  # Existing admin flag
     links = db.relationship('Link', backref='user', lazy='dynamic')
-
+    
+    language = db.Column(db.String(32), default='en')
+    timezone = db.Column(db.String(64), default='UTC')
+    
+    tag_autocompletion = db.Column(db.Boolean, default=True)
+    sort_tags_by_frequency = db.Column(db.Boolean, default=False)
+    use_return_key_for_autocomplete = db.Column(db.Boolean, default=True)
+    mark_toread_as_read_on_click = db.Column(db.Boolean, default=False)
+    open_links_in_new_window = db.Column(db.Boolean, default=False)
+    enable_keyboard_shortcuts = db.Column(db.Boolean, default=False)
+    subscribe_to_tags = db.Column(db.Boolean, default=False)
+    part_of_fandom = db.Column(db.Boolean, default=False)
+    enable_tag_bundles = db.Column(db.Boolean, default=False)
+    always_show_tags_alphabetical = db.Column(db.Boolean, default=False)
+    display_url_under_title = db.Column(db.Boolean, default=False)
+    show_global_bookmark_counts = db.Column(db.Boolean, default=False)
+    show_exact_datetime_on_bookmarks = db.Column(db.Boolean, default=False)
+    add_bookmarks_private_by_default = db.Column(db.Boolean, default=False)
+    enable_public_profile = db.Column(db.Boolean, default=False)
+    enable_privacy_mode = db.Column(db.Boolean, default=False)
+    
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 

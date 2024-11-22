@@ -232,12 +232,33 @@ def delete_link(link_id):
 @app.route('/preferences', methods=['GET', 'POST'])
 @login_required
 def preferences():
-    form = PreferencesForm(user=current_user)  # Pass the current user to the form
+    form = PreferencesForm(user=current_user)
     if form.validate_on_submit():
-        # Update the user's password
-        current_user.set_password(form.new_password.data)
+        if form.new_password.data:
+            current_user.set_password(form.new_password.data)
+        
+        current_user.language = form.language.data
+        current_user.timezone = form.timezone.data
+        
+        current_user.tag_autocompletion = form.tag_autocompletion.data
+        current_user.sort_tags_by_frequency = form.sort_tags_by_frequency.data
+        current_user.use_return_key_for_autocomplete = form.use_return_key_for_autocomplete.data
+        current_user.mark_toread_as_read_on_click = form.mark_toread_as_read_on_click.data
+        current_user.open_links_in_new_window = form.open_links_in_new_window.data
+        current_user.enable_keyboard_shortcuts = form.enable_keyboard_shortcuts.data
+        current_user.subscribe_to_tags = form.subscribe_to_tags.data
+        current_user.part_of_fandom = form.part_of_fandom.data
+        current_user.enable_tag_bundles = form.enable_tag_bundles.data
+        current_user.always_show_tags_alphabetical = form.always_show_tags_alphabetical.data
+        current_user.display_url_under_title = form.display_url_under_title.data
+        current_user.show_global_bookmark_counts = form.show_global_bookmark_counts.data
+        current_user.show_exact_datetime_on_bookmarks = form.show_exact_datetime_on_bookmarks.data
+        current_user.add_bookmarks_private_by_default = form.add_bookmarks_private_by_default.data
+        current_user.enable_public_profile = form.enable_public_profile.data
+        current_user.enable_privacy_mode = form.enable_privacy_mode.data
+
         db.session.commit()
-        flash('Your password has been updated.')
+        flash('Your preferences have been updated.')
         return redirect(url_for('index'))
     return render_template('preferences.html', form=form)
 

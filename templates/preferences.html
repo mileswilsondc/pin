@@ -5,7 +5,8 @@
     <h1>Preferences</h1>
     <form method="post" class="form">
         {{ form.hidden_tag() }}
-    
+
+        <h2>Change Password</h2>
         <div class="form-group">
             {{ form.current_password.label(class="form-label") }}
             {{ form.current_password(class="form-input", placeholder="Enter your current password") }}
@@ -41,7 +42,115 @@
                 </ul>
             {% endif %}
         </div>
-    
+
+        <h2>Language & Timezone</h2>
+        <div class="form-group">
+            {{ form.language.label(class="form-label") }}
+            {{ form.language(class="form-select") }}
+            {% if form.language.errors %}
+                <ul class="errors">
+                    {% for error in form.language.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            {{ form.timezone.label(class="form-label") }}
+            {{ form.timezone(class="form-select") }}
+            {% if form.timezone.errors %}
+                <ul class="errors">
+                    {% for error in form.timezone.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        
+        <!-- Checkbox Preferences Section -->
+        <h2>Preferences</h2>
+        
+        <div class="form-checkbox">
+            {{ form.tag_autocompletion() }}
+            {{ form.tag_autocompletion.label(class="form-label") }}
+        </div>
+        
+        <div class="form-checkbox">
+            {{ form.sort_tags_by_frequency() }}
+            {{ form.sort_tags_by_frequency.label(class="form-label") }}
+        </div>
+        
+        <div class="form-checkbox">
+            {{ form.use_return_key_for_autocomplete() }}
+            {{ form.use_return_key_for_autocomplete.label(class="form-label") }}
+        </div>
+        
+        <div class="form-checkbox">
+            {{ form.mark_toread_as_read_on_click() }}
+            {{ form.mark_toread_as_read_on_click.label(class="form-label") }}
+        </div>
+        
+        <div class="form-checkbox">
+            {{ form.open_links_in_new_window() }}
+            {{ form.open_links_in_new_window.label(class="form-label") }}
+        </div>
+        
+        <div class="form-checkbox">
+            {{ form.enable_keyboard_shortcuts() }}
+            {{ form.enable_keyboard_shortcuts.label(class="form-label") }}
+        </div>
+        
+        <div class="form-checkbox">
+            {{ form.subscribe_to_tags() }}
+            {{ form.subscribe_to_tags.label(class="form-label") }}
+        </div>
+        
+        <!--<div class="form-checkbox">
+            {{ form.part_of_fandom() }}
+            {{ form.part_of_fandom.label(class="form-label") }}
+        </div>-->
+        
+        <div class="form-checkbox">
+            {{ form.enable_tag_bundles() }}
+            {{ form.enable_tag_bundles.label(class="form-label") }}
+        </div>
+        
+        <div class="form-checkbox">
+            {{ form.always_show_tags_alphabetical() }}
+            {{ form.always_show_tags_alphabetical.label(class="form-label") }}
+        </div>
+        
+        <div class="form-checkbox">
+            {{ form.display_url_under_title() }}
+            {{ form.display_url_under_title.label(class="form-label") }}
+        </div>
+        
+        <div class="form-checkbox">
+            {{ form.show_global_bookmark_counts() }}
+            {{ form.show_global_bookmark_counts.label(class="form-label") }}
+        </div>
+        
+        <div class="form-checkbox">
+            {{ form.show_exact_datetime_on_bookmarks() }}
+            {{ form.show_exact_datetime_on_bookmarks.label(class="form-label") }}
+        </div>
+        
+        <div class="form-checkbox">
+            {{ form.add_bookmarks_private_by_default() }}
+            {{ form.add_bookmarks_private_by_default.label(class="form-label") }}
+        </div>
+        
+        <div class="form-checkbox">
+            {{ form.enable_public_profile() }}
+            {{ form.enable_public_profile.label(class="form-label") }}
+        </div>
+        
+        <div class="form-checkbox">
+            {{ form.enable_privacy_mode() }}
+            {{ form.enable_privacy_mode.label(class="form-label") }}
+        </div>
+        
         <div class="form-group">
             {{ form.submit(class="form-button") }}
         </div>
