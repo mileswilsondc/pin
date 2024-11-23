@@ -9,11 +9,24 @@
     <h3>Active Filters:</h3>
     <ul>
         {% for key, value in filters.items() %}
-        <li><strong>{{ key.capitalize() }}:</strong> {{ value }}</li>
+        <li><strong>{{ key.capitalize() }}:</strong> 
+            {% if value is iterable and value is not string %}
+            {{ value | join(', ') }}
+            {% else %}
+            {{ value }}
+            {% endif %}
+        </li>
         {% endfor %}
     </ul>
 </div>
 {% endif %}
+
+<div class="small-username">
+    {% if username %}
+    <b>{{ username }}</b>&nbsp;
+    {% endif %}
+    <small>{{ result_count }} result{{ 's' if result_count != 1 else '' }}</small>
+</div>
 
 <div class="links-and-tags">
     <!-- Tag Cloud Section -->
@@ -32,7 +45,7 @@
         {% set new_filters = new_filters + 'tag:' + t + '/' %}
         {% endfor %}
         {% else %}
-        {% set new_filters = new_filters + key + ':' + value + '/' %}
+        {% set new_filters = new_filters + key + ':' + value[0] + '/' %}
         {% endif %}
         {% endfor %}
         {% set new_filters = new_filters + 'tag:' + tag.name %}

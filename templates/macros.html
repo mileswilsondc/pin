@@ -52,7 +52,7 @@
 
 {# User Info #}
 {% if show_user and link.user %}
-by <a href="{{ url_for('user_links', username=link.user.username) }}">{{ link.user.username }}</a>
+by {{ link.user.username }}
 {% endif %}
 
 {# Manipulate Links #}

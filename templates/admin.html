@@ -14,7 +14,7 @@
             <a href="{{ link.url }}" {% if current_user.open_links_in_new_window %}target="_blank" rel="noopener noreferrer"{% endif %}>
                 {{ link.title }}
             </a>
-            by <a href="{{ url_for('user_links', username=link.user.username) }}">{{ link.user.username }}</a>
+            by {{ link.user.username }}
             <span class="when">{{ link.created_at | format_relative_time }}</span>
         </li>
         {% endfor %}
