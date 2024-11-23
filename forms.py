@@ -34,27 +34,9 @@ class EditLinkForm(FlaskForm):
     read_later = BooleanField('Read Later')
     submit = SubmitField('Update')
 
-class PreferencesForm(FlaskForm):
-    # Password Fields
-    current_password = PasswordField('Current Password', validators=[Optional()])
-    new_password = PasswordField('New Password', validators=[
-        Optional(),
-        EqualTo('confirm_new_password', message='Passwords must match')
-    ])
-    confirm_new_password = PasswordField('Confirm New Password', validators=[Optional()])
-    
-    language = SelectField('Language', choices=[
-        ('en', 'English'),
-        ('es', 'Spanish / Español'),
-        ('fr', 'French / Français'),
-        ('de', 'German / Deutsch'),
-        ('cn', 'Chinese / 中文'),
-        ('jp', 'Japanese / 日本語'),
-    ], default='en')
-    
-    timezone = SelectField('Timezone', choices=[
+timezone_choices = [
         ('Etc/UTC', 'UTC (default)'),
-        ('America/Anchorage', '-9:00 : Alaska'),
+        ('America/Anchorage', '-9:00 : Anchorage'),
         ('America/Ensenada', '-8:00 : Tijuana, Baja California'),
         ('America/Los_Angeles', '-8:00 : Pacific Time'),
         ('America/Denver', '-7:00 : Mountain Time'),
@@ -112,7 +94,27 @@ class PreferencesForm(FlaskForm):
         ('Etc/GMT-12', '+12:00 : Fiji, Kamchatka, Marshall Is.'),
         ('Pacific/Midway', '-11:00 : Midway Island, Samoa'),
         ('America/Adak', '-10:00 : Hawaii, Aleutians'),
-    ], default='Etc/UTC')
+]
+
+class PreferencesForm(FlaskForm):
+    # Password Fields
+    current_password = PasswordField('Current Password', validators=[Optional()])
+    new_password = PasswordField('New Password', validators=[
+        Optional(),
+        EqualTo('confirm_new_password', message='Passwords must match')
+    ])
+    confirm_new_password = PasswordField('Confirm New Password', validators=[Optional()])
+    
+    language = SelectField('Language', choices=[
+        ('en', 'English'),
+        ('es', 'Spanish / Español'),
+        ('fr', 'French / Français'),
+        ('de', 'German / Deutsch'),
+        ('cn', 'Chinese / 中文'),
+        ('jp', 'Japanese / 日本語'),
+    ], default='en')
+    
+    timezone = SelectField('Timezone', choices=timezone_choices, default='Etc/UTC')
 
     # Checkbox Preferences
     tag_autocompletion = BooleanField('Enable Tag Autocompletion')
@@ -200,67 +202,7 @@ class AdminEditUserForm(FlaskForm):
         ('jp', 'Japanese / 日本語'),
     ], default='en')
 
-    timezone = SelectField('Timezone', choices=[
-        ('Etc/UTC', 'UTC (default)'),
-        ('America/Anchorage', '-9:00 : Alaska'),
-        ('America/Ensenada', '-8:00 : Tijuana, Baja California'),
-        ('America/Los_Angeles', '-8:00 : Pacific Time'),
-        ('America/Denver', '-7:00 : Mountain Time'),
-        ('America/Chihuahua', '-7:00 : Chihuahua, La Paz'),
-        ('America/Dawson_Creek', '-7:00 : Arizona'),
-        ('America/Belize', '-6:00 : Saskatchewan, Central America'),
-        ('America/Cancun', '-6:00 : Guadalajara, Mexico City'),
-        ('America/Chicago', '-6:00 : Central Time'),
-        ('America/New_York', '-5:00 : Eastern Time'),
-        ('America/Havana', '-5:00 : Cuba'),
-        ('America/Bogota', '-5:00 : Bogota, Lima, Quito'),
-        ('America/Caracas', '-4:30 : Caracas'),
-        ('America/Santiago', '-4:00 : Santiago'),
-        ('America/La_Paz', '-4:00 : La Paz'),
-        ('America/Campo_Grande', '-4:00 : Brazil'),
-        ('America/Goose_Bay', '-4:00 : Atlantic Time'),
-        ('America/St_Johns', '-3:30 : Newfoundland'),
-        ('America/Montevideo', '-3:00 : Montevideo'),
-        ('America/Argentina/Buenos_Aires', '-3:00 : Buenos Aires'),
-        ('America/Sao_Paulo', '-3:00 : Brasilia'),
-        ('Europe/London', '+0:00 : London, Reykjavik, GMT'),
-        ('Europe/Amsterdam', '+1:00 : Amsterdam, Berlin, Rome'),
-        ('Europe/Belgrade', '+1:00 : Belgrade, Budapest, Prague'),
-        ('Asia/Beirut', '+2:00 : Beirut'),
-        ('Africa/Cairo', '+2:00 : Cairo'),
-        ('Africa/Blantyre', '+2:00 : Harare, Pretoria'),
-        ('Asia/Jerusalem', '+2:00 : Jerusalem'),
-        ('Europe/Moscow', '+3:00 : Moscow, St. Petersburg'),
-        ('Africa/Addis_Ababa', '+3:00 : Nairobi'),
-        ('Asia/Tehran', '+3:30 : Tehran'),
-        ('Asia/Dubai', '+4:00 : Abu Dhabi, Muscat'),
-        ('Asia/Yerevan', '+4:00 : Yerevan'),
-        ('Asia/Kabul', '+4:30 : Kabul'),
-        ('Asia/Yekaterinburg', '+5:00 : Ekaterinburg'),
-        ('Asia/Tashkent', '+5:00 : Tashkent'),
-        ('Asia/Kolkata', '+5:30 : Chennai, Mumbai, New Delhi'),
-        ('Asia/Katmandu', '+5:45 : Kathmandu'),
-        ('Asia/Dhaka', '+6:00 : Astana, Dhaka'),
-        ('Asia/Novosibirsk', '+6:00 : Novosibirsk'),
-        ('Asia/Rangoon', '+6:30 : Yangon (Rangoon)'),
-        ('Asia/Bangkok', '+7:00 : Bangkok, Hanoi, Jakarta'),
-        ('Asia/Krasnoyarsk', '+7:00 : Krasnoyarsk'),
-        ('Asia/Hong_Kong', '+8:00 : Beijing, Hong Kong'),
-        ('Asia/Irkutsk', '+8:00 : Irkutsk, Ulaan Bataar'),
-        ('Australia/Perth', '+8:00 : Perth'),
-        ('Asia/Tokyo', '+9:00 : Osaka, Sapporo, Tokyo'),
-        ('Asia/Seoul', '+9:00 : Seoul'),
-        ('Australia/Adelaide', '+9:30 : Adelaide'),
-        ('Australia/Darwin', '+9:30 : Darwin'),
-        ('Australia/Brisbane', '+10:00 : Brisbane'),
-        ('Australia/Hobart', '+10:00 : Hobart'),
-        ('Asia/Vladivostok', '+10:00 : Vladivostok'),
-        ('Asia/Magadan', '+11:00 : Magadan'),
-        ('Pacific/Auckland', '+12:00 : Auckland, Wellington'),
-        ('Etc/GMT-12', '+12:00 : Fiji, Kamchatka, Marshall Is.'),
-        ('Pacific/Midway', '-11:00 : Midway Island, Samoa'),
-        ('America/Adak', '-10:00 : Hawaii, Aleutians'),
-    ], default='Etc/UTC')
+    timezone = SelectField('Timezone', choices=timezone_choices, default='Etc/UTC')
 
     # Checkbox Preferences
     tag_autocompletion = BooleanField('Enable Tag Autocompletion')

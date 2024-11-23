@@ -1,22 +1,6 @@
-/* General Styles */
+/* Basic styles */
 body {
     font-family: Helvetica, sans-serif;
-    margin: 0;
-    padding: 0;
-}
-
-h1 {
-    font-size: 1.2em;
-    margin-bottom: 0.5em;
-}
-
-a {
-    text-decoration: none;
-}
-
-nav a {
-    margin: 0 5px;
-    text-transform: lowercase;
 }
 
 hr {
@@ -27,29 +11,44 @@ hr {
     margin-bottom: 1em;
 }
 
-.container {
-    width: 1050px;
-    max-width: 95vw;
-    margin: 0 auto;
-    min-height: 400px;
-    padding: 0 20px 10px 20px;
+a {
+    text-decoration: none;
 }
 
-/* Form Styles */
+/* Layout */
+nav, footer {
+    text-transform: lowercase;
+}
+
+nav a {
+    margin: 0 5px;
+}
+
+.container {
+    width: 1050px;
+    max-width: 93vw;
+    margin: 0 auto;
+    padding: 0 5px 10px 5px;
+}
+
+section {
+    margin-bottom: 2em;
+}
+
+footer {
+    text-align: center;
+    text-transform: lowercase;
+}
+
+/* Forms */
 .form {
     max-width: 600px;
-    padding: 20px;
 }
 
 .form-group {
     display: flex;
     flex-direction: column;
     margin-bottom: 15px;
-}
-
-.form-label {
-    margin-bottom: 5px;
-    font-weight: bold;
 }
 
 .form-input,
@@ -67,36 +66,23 @@ hr {
     margin-bottom: 15px;
 }
 
-.form-checkbox {
-    align-items: center;
-}
-
-.form-checkbox input {
-}
-
 .form-button {
     padding: 10px 20px;
     font-size: 1em;
     cursor: pointer;
 }
 
-.errors {
-    color: red;
-    list-style-type: none;
-    padding: 0;
-    margin-top: 5px;
+.form-checkbox input {
+    margin-right: 0.5em;
 }
 
-.errors li {
-    margin: 0;
+.form-checkbox {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5em;
 }
 
-/* Additional Styles */
-a.tag {
-    color: #a51;
-    line-height: 190%;
-}
-
+/* Styles */
 .bookmark-title {
     line-height: 130%;
     font-size: 110%;
@@ -138,7 +124,6 @@ nav .logo {
     margin-bottom: 10px;
 }
 
-/* Style the delete button to look like a link */
 .delete-form {
     display: inline;
 }
@@ -146,7 +131,7 @@ nav .logo {
 .delete-link {
     background: none;
     border: none;
-    color: #007bff; /* Bootstrap link color; adjust as needed */
+    color: #007bff;
     text-decoration: none;
     cursor: pointer;
     padding: 0;
@@ -160,11 +145,6 @@ nav .logo {
     margin-right: 10px;
     text-decoration: none;
     cursor: pointer;
-}
-
-.manipulate a.extract:hover {
-    color: #555;
-    text-decoration: underline;
 }
 
 .manipulate a.edit,
@@ -185,46 +165,10 @@ nav .logo {
     font: inherit;
 }
 
-.manipulate a.action-link:hover,
-.manipulate button.action-link:hover {
-    color: #555;
-    text-decoration: underline;
-}
-
 .copy-link {
-    color: #007bff;
     text-decoration: none;
     cursor: pointer;
     margin-left: 10px;
-}
-
-.copy-link:hover {
-    color: #0056b3;
-    text-decoration: underline;
-}
-
-.flash-messages {
-    list-style-type: none;
-    padding: 0;
-    margin: 0 0 1em 0;
-}
-
-.flash-messages li {
-    padding: 10px;
-    margin-bottom: 5px;
-    border-radius: 4px;
-}
-
-.flash-success {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-}
-
-.flash-error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
 }
 
 .bookmark-url {
@@ -234,7 +178,6 @@ nav .logo {
     word-break: break-all;
 }
 
-/* Tag Cloud Styles */
 .tag-cloud {
     margin-bottom: 1em;
     padding: 10px;
@@ -255,9 +198,6 @@ nav .logo {
     text-decoration: underline;
 }
 
-/* Add to your existing static/style.css */
-
-/* Recent Links Section */
 .recent-links {
     list-style-type: none;
     padding: 0;
@@ -277,7 +217,6 @@ nav .logo {
     margin-left: 10px;
 }
 
-/* User Management Section */
 .user-management {
     margin-bottom: 2em;
 }
@@ -294,20 +233,6 @@ nav .logo {
 
 .user-management legend {
     font-weight: bold;
-}
-
-.form-checkbox {
-    display: flex;
-    align-items: center;
-    margin-bottom: 0.5em;
-}
-
-.form-checkbox input {
-    margin-right: 0.5em;
-}
-
-.form-button:hover {
-    background-color: #0056b3;
 }
 
 section h2 {
@@ -334,25 +259,6 @@ section h2 {
     margin-left: 10px;
 }
 
-/* User Management Section */
-.user-management {
-    margin-bottom: 2em;
-}
-
-.user-management h3 {
-    margin-bottom: 0.5em;
-}
-
-.user-management fieldset {
-    border: 1px solid #ddd;
-    padding: 1em;
-    margin-bottom: 1em;
-}
-
-.user-management legend {
-    font-weight: bold;
-}
-
 .form-checkbox {
     display: flex;
     align-items: center;
@@ -363,30 +269,11 @@ section h2 {
     margin-right: 0.5em;
 }
 
-.flash-success {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-}
-
-.flash-error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-}
-
-section {
-    margin-bottom: 2em;
-}
-
 .links-container {
     width: 100%;
 }
 
 @media (min-width: 768px) {
-    .links-and-tags {
-    }
-    
     .tag-cloud {
         width: 25vw;
         margin-left: 20px;
@@ -410,7 +297,8 @@ section {
     padding-right: 1px;
 }
 
-footer {
-    text-align: center;
-    text-transform: lowercase;
+@media print {
+    .container {
+        width: 100%;
+    }
 }
