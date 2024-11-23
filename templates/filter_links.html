@@ -5,37 +5,37 @@
 {% block content %}
 
 <div class="filter-context">
-
+    
     <!-- Line 1: Username (if any), Result Count, and Active Filters as Badges -->
     <div class="search-info">
         {% if username %}
-            <span class="search-username"><b>{{ username }}</b></span>
+        <span class="search-username"><b>{{ username }}</b></span>
         {% endif %}
         <span class="result-count">{{ result_count }} 📌{{ 's' if result_count != 1 else '' }}</span>
         
         {% for key, values in filters.items() %}
-            {% if key in ['tag', 'before', 'after', 'paginate', 'paginate_after'] %}
-                {% for value in values %}
-                    <span class="badge filter-badge {{ key }}">{{ key.capitalize() }}: {{ value }}</span>
-                {% endfor %}
-            {% endif %}
+        {% if key in ['tag', 'before', 'after', 'paginate', 'paginate_after'] %}
+        {% for value in values %}
+        <span class="badge filter-badge {{ key }}">{{ key.capitalize() }}: {{ value }}</span>
+        {% endfor %}
+        {% endif %}
         {% endfor %}
     </div>
     
     <!-- Line 2: Menu Filters -->
     <div class="menu-filters">
         {% for name, url in filter_options %}
-            <a href="{{ url }}" class="menu-filter">{{ name.capitalize() }}</a>
+        <a href="{{ url }}" class="menu-filter">{{ name.capitalize() }}</a>
         {% endfor %}
     </div>
     
     <!-- Line 3: Pagination Links -->
     <div class="pagination">
         {% if has_next %}
-            <a href="{{ next_url }}" class="pagination-link">Earlier</a>
+        <a href="{{ next_url }}" class="pagination-link">Earlier</a>
         {% endif %}
         {% if has_prev %}
-            <a href="{{ prev_url }}" class="pagination-link">Later</a>
+        <a href="{{ prev_url }}" class="pagination-link">Later</a>
         {% endif %}
     </div>
     
@@ -52,10 +52,10 @@
         {% endif %}
         <div class="pagination">
             {% if has_next %}
-                <a href="{{ next_url }}" class="pagination-link">Earlier</a>
+            <a href="{{ next_url }}" class="pagination-link">Earlier</a>
             {% endif %}
             {% if has_prev %}
-                <a href="{{ prev_url }}" class="pagination-link">Later</a>
+            <a href="{{ prev_url }}" class="pagination-link">Later</a>
             {% endif %}
         </div>
     </div>
@@ -72,17 +72,17 @@
             {% if filters %}
             {% set new_filters = '' %}
             {% for key, value in filters.items() %}
-                {% if key == 'tag' %}
-                    {% for t in value %}
-                        {% set new_filters = new_filters + 'tag:' + t + '/' %}
-                    {% endfor %}
-                {% else %}
-                    {% set new_filters = new_filters + key + ':' + value[0] + '/' %}
-                {% endif %}
+            {% if key == 'tag' %}
+            {% for t in value %}
+            {% set new_filters = new_filters + 'tag:' + t + '/' %}
+            {% endfor %}
+            {% else %}
+            {% set new_filters = new_filters + key + ':' + value[0] + '/' %}
+            {% endif %}
             {% endfor %}
             {% set new_filters = new_filters + 'tag:' + tag.name %}
             {% else %}
-                {% set new_filters = 'tag:' + tag.name %}
+            {% set new_filters = 'tag:' + tag.name %}
             {% endif %}
             <a href="{{ url_for('index', filters=new_filters, floor=floor) }}"
             style="font-size: {{ tag.size }}px;"
@@ -92,14 +92,13 @@
         </div>
         <div class="floor-filters">
             Tag cloud floor:
-                <a href="{{ url_for('index', filters=filters | join('/'), floor=1) }}">All Tags</a>
-                ‧ <a href="{{ url_for('index', filters=filters | join('/'), floor=2) }}">2</a>
-                ‧ <a href="{{ url_for('index', filters=filters | join('/'), floor=5) }}">5</a>
-                ‧ <a href="{{ url_for('index', filters=filters | join('/'), floor=10) }}">10</a>
-                ‧ <a href="{{ url_for('index', filters=filters | join('/'), floor=20) }}">20</a>
-            </div>
-            {% endif %}
+            <a href="{{ url_for('index', filters=filters | join('/'), floor=1) }}">All Tags</a>
+            ‧ <a href="{{ url_for('index', filters=filters | join('/'), floor=2) }}">2</a>
+            ‧ <a href="{{ url_for('index', filters=filters | join('/'), floor=5) }}">5</a>
+            ‧ <a href="{{ url_for('index', filters=filters | join('/'), floor=10) }}">10</a>
+            ‧ <a href="{{ url_for('index', filters=filters | join('/'), floor=20) }}">20</a>
         </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

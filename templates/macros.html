@@ -3,21 +3,21 @@
     {# Determine if the link should use the redirect route #}
     {% if current_user.is_authenticated and link.user_id == current_user.id %}
     {% if link.read_later %}
-        <a class="bookmark-title read-later" href="{{ url_for('read_redirect', link_id=link.id) }}"
-        {% if current_user.open_links_in_new_window %}target="_blank" rel="noopener noreferrer"{% endif %}>
-        {{ link.title }}
-        </a>
-    {% else %}
-        <a class="bookmark-title" href="{{ link.url }}"
-        {% if current_user.open_links_in_new_window %}target="_blank" rel="noopener noreferrer"{% endif %}>
-        {{ link.title }}
-        </a>
-    {% endif %}
-{% else %}
-    <a class="bookmark-title" href="{{ link.url }}"
-    {% if current_user and current_user.open_links_in_new_window %}target="_blank" rel="noopener noreferrer"{% endif %}>
+    <a class="bookmark-title read-later" href="{{ url_for('read_redirect', link_id=link.id) }}"
+    {% if current_user.open_links_in_new_window %}target="_blank" rel="noopener noreferrer"{% endif %}>
     {{ link.title }}
-    </a>
+</a>
+{% else %}
+<a class="bookmark-title" href="{{ link.url }}"
+{% if current_user.open_links_in_new_window %}target="_blank" rel="noopener noreferrer"{% endif %}>
+{{ link.title }}
+</a>
+{% endif %}
+{% else %}
+<a class="bookmark-title" href="{{ link.url }}"
+{% if current_user and current_user.open_links_in_new_window %}target="_blank" rel="noopener noreferrer"{% endif %}>
+{{ link.title }}
+</a>
 {% endif %}
 
 {# Display URL under title if preference is enabled #}
@@ -42,9 +42,14 @@
     {% endif %}
     
     {% for tag in sorted_tags %}
+    {# Conditionally display private tags #}
+    {% if not tag.name.startswith('.') or (current_user.is_authenticated and current_user.id == link.user_id) %}
     <a class="tag {% if tag.name.startswith('.') %}private-tag{% endif %}" 
-    href="{{ url_for('index', filters='tag:' + tag.name) }}">{{ tag.name }}</a>
-    {% endfor %}
+    href="{{ url_for('index', filters='tag:' + tag.name) }}">
+    {{ tag.name }}
+</a>
+{% endif %}
+{% endfor %}
 </div>
 {% endif %}
 

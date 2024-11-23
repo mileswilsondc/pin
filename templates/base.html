@@ -17,7 +17,7 @@
             <a href="{{ url_for('my_links') }}">My links</a>
             <a href="{{ url_for('read_later_redirect') }}">Read later</a>
             <a href="{{ url_for('preferences') }}">Preferences</a>
-            <a href="{{ url_for('profile') }}">Profile</a> <!-- New Profile Link -->
+            <a href="{{ url_for('profile') }}">Profile</a>
             {% if current_user.admin %}
             <a href="{{ url_for('admin_page') }}">Admin</a>
             {% endif %}
@@ -38,8 +38,8 @@
         {% endif %}
         {% endwith %}
         {% block content %}{% endblock %}
-        <hr>
         <footer>
+            <hr>
             <a href="{{ url_for('faq') }}">FQA</a>
             <a href="{{ url_for('dmca') }}">DMCA</a>
             <i style="float: right; font-size: 0.6em; color: gray">{{ render_time }}</i>
