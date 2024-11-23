@@ -378,3 +378,23 @@ section h2 {
 section {
     margin-bottom: 2em;
 }
+
+.links-container {
+    width: 100%;
+}
+
+@media (min-width: 768px) {
+    .links-and-tags {
+    }
+    
+    .tag-cloud {
+        width: 25vw;
+        margin-left: 20px;
+        float: right;
+    }
+    
+    .links-container {
+        width: 75vw;
+        margin-right: 20px;
+    }
+}
