@@ -324,16 +324,6 @@ def my_links():
     filters = f"u:{current_user.username}"
     return redirect(url_for('index', filters=filters))
 
-# Browse by tag
-@app.route('/tag/<tag_name>')
-def tag_links(tag_name):
-    tag = Tag.query.filter_by(name=tag_name).first_or_404()
-    if current_user.is_authenticated:
-        links = tag.links.order_by(Link.id.desc()).all()
-    else:
-        links = tag.links.filter_by(private=False).order_by(Link.id.desc()).all()
-    return render_template('tag_links.html', links=links, tag=tag)
-
 # Unread links
 @app.route('/read-later')
 @login_required

@@ -30,14 +30,11 @@
 {# Tags #}
 {% if link.tags %}
 <div class="tags">
-    {% set tags = link.tags %}
-    {% if current_user.is_authenticated and current_user.always_show_tags_alphabetical %}
-    {% set tags = tags | sort(attribute='name') %}
-    {% endif %}
-    {% for tag in tags %}
+    {% for tag in link.tags %}
     {% if not tag.name.startswith('.') or (current_user and current_user.is_authenticated and link.user_id == current_user.id) %}
+    {% set new_filters = 'tag:' + tag.name %}
     <a class="tag {% if tag.name.startswith('.') %}private-tag{% endif %}" 
-    href="{{ url_for('tag_links', tag_name=tag.name) }}">{{ tag.name }}</a>
+    href="{{ url_for('index', filters=new_filters) }}">{{ tag.name }}</a>
     {% endif %}
     {% endfor %}
 </div>
