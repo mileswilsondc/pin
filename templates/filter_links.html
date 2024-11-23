@@ -37,7 +37,16 @@
         {% endfor %}
     </div>
     {% endif %}
+    <div class="pagination">
+        {% if has_next %}
+            <a href="{{ next_url }}" class="pagination-link">← Earlier</a>
+        {% endif %}
+        {% if has_prev %}
+            <a href="{{ prev_url }}" class="pagination-link">Later →</a>
+        {% endif %}
+    </div>
 </div>
+
 <div class="content-container">
     <div class="links-container">
         {% if links %}
@@ -48,7 +57,6 @@
         <p>No bookmarks match the specified filters.</p>
         {% endif %}
     </div>
-    
     
     <!-- Tag Cloud Section -->
     <div class="tag-cloud-container">
@@ -62,17 +70,17 @@
             {% if filters %}
             {% set new_filters = '' %}
             {% for key, value in filters.items() %}
-            {% if key == 'tag' %}
-            {% for t in value %}
-            {% set new_filters = new_filters + 'tag:' + t + '/' %}
-            {% endfor %}
-            {% else %}
-            {% set new_filters = new_filters + key + ':' + value[0] + '/' %}
-            {% endif %}
+                {% if key == 'tag' %}
+                    {% for t in value %}
+                        {% set new_filters = new_filters + 'tag:' + t + '/' %}
+                    {% endfor %}
+                {% else %}
+                    {% set new_filters = new_filters + key + ':' + value[0] + '/' %}
+                {% endif %}
             {% endfor %}
             {% set new_filters = new_filters + 'tag:' + tag.name %}
             {% else %}
-            {% set new_filters = 'tag:' + tag.name %}
+                {% set new_filters = 'tag:' + tag.name %}
             {% endif %}
             <a href="{{ url_for('index', filters=new_filters, floor=floor) }}"
             style="font-size: {{ tag.size }}px;"
@@ -91,4 +99,5 @@
             {% endif %}
         </div>
     </div>
-    {% endblock %}
+</div>
+{% endblock %}

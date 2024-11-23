@@ -3,6 +3,7 @@
 - [x] Proper archiving
 - [x] Generate word clouds ~~from tags~~
 - [x] Fix delete button into link
+- [ ] Pagination
 - [ ] Export
 - [ ] Import
 - [ ] Search

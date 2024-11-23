@@ -1,4 +1,4 @@
-# app.py
+# app.py (Modified index route with cursor-based pagination)
 from flask import Flask, render_template, redirect, url_for, request, flash, abort, g, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import (
@@ -21,6 +21,7 @@ from functools import wraps
 from flask_wtf import CSRFProtect
 from urllib.parse import unquote
 from sqlalchemy import func, desc
+from sqlalchemy.orm import joinedload
 from collections import defaultdict
 
 app = Flask(__name__)
@@ -49,34 +50,155 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+
+def parse_filters(filters):
+    """
+    Parse filter path segments into a dictionary.
+    Supports multiple 'tag' filters and other specific filters including 'paginate' and 'paginate_after'.
+    """
+    filter_parts = filters.split('/') if filters else []
+    filter_dict = defaultdict(list)
+
+    for part in filter_parts:
+        if ':' in part:
+            key, value = part.split(':', 1)
+            key = key.lower()
+            value = unquote(value)
+            if key in ['tag', 'u', 'before', 'after', 'read_later', 'untagged', 'private', 'paginate', 'paginate_after']:
+                filter_dict[key].append(value)
+            else:
+                flash(f'Unknown filter key: "{key}".', 'error')
+                abort(400)
+        else:
+            flash(f'Invalid filter format: "{part}". Expected key:value.', 'error')
+            abort(400)  # Bad Request
+
+    return filter_dict
+
+def apply_filters(query, filter_dict, exclude_keys=[]):
+    """
+    Apply filters from the filter_dict to the SQLAlchemy query.
+    Allows excluding certain keys (e.g., 'paginate') from being applied.
+    """
+    for key, values in filter_dict.items():
+        if key in exclude_keys:
+            continue
+        if key == 'u':
+            username = values[0]  # Assuming single user filter
+            user = User.query.filter_by(username=username).first()
+            if not user:
+                flash(f'User "{username}" not found.', 'error')
+                abort(404)
+            query = query.filter(Link.user_id == user.id)
+        elif key == 'before':
+            try:
+                timestamp = int(values[0])  # Assuming single before filter
+                dt_before = datetime.utcfromtimestamp(timestamp)
+                query = query.filter(Link.created_at < dt_before)
+            except ValueError:
+                flash('Invalid "before" timestamp. It must be a valid Unix timestamp.', 'error')
+                abort(400)
+        elif key == 'after':
+            try:
+                timestamp = int(values[0])  # Assuming single after filter
+                dt_after = datetime.utcfromtimestamp(timestamp)
+                query = query.filter(Link.created_at > dt_after)
+            except ValueError:
+                flash('Invalid "after" timestamp. It must be a valid Unix timestamp.', 'error')
+                abort(400)
+        elif key == 'tag':
+            tag_names = [t.lower() for t in values]
+            tags = Tag.query.filter(Tag.name.in_(tag_names)).all()
+            if not tags:
+                query = query.filter(False)  # No results
+            else:
+                for tag in tags:
+                    query = query.filter(Link.tags.contains(tag))
+        elif key == 'untagged':
+            for value in values:
+                if value.lower() == 'true':
+                    query = query.filter(~Link.tags.any())
+                elif value.lower() == 'false':
+                    pass  # No filtering needed
+                else:
+                    flash('Invalid value for "untagged" filter. Use true or false.', 'error')
+                    abort(400)
+        elif key == 'read_later':
+            if not current_user.is_authenticated:
+                flash('You need to be logged in to filter by read_later.', 'error')
+                abort(403)
+            for value in values:
+                if value.lower() in ['true', '1', 'yes']:
+                    query = query.filter(Link.read_later == True)
+                elif value.lower() in ['false', '0', 'no']:
+                    query = query.filter(Link.read_later == False)
+                else:
+                    flash('Invalid value for "read_later" filter. Use true or false.', 'error')
+                    abort(400)
+            # Ensure we only show the current user's read_later links
+            query = query.filter(Link.user_id == current_user.id)
+        elif key == 'private':
+            for value in values:
+                if value.lower() == 'true':
+                    query = query.filter(Link.private == True)
+                elif value.lower() == 'false':
+                    query = query.filter(Link.private == False)
+                else:
+                    flash('Invalid value for "private" filter. Use true or false.', 'error')
+                    abort(400)
+        elif key == 'paginate':
+            try:
+                paginate_timestamp = int(values[0])
+                if paginate_timestamp < 0:
+                    raise ValueError
+                paginate_datetime = datetime.utcfromtimestamp(paginate_timestamp)
+                query = query.filter(Link.created_at < paginate_datetime)
+            except ValueError:
+                flash('Invalid "paginate" value. It must be a positive integer UNIX timestamp.', 'error')
+                abort(400)
+        elif key == 'paginate_after':
+            try:
+                paginate_after_timestamp = int(values[0])
+                if paginate_after_timestamp < 0:
+                    raise ValueError
+                paginate_after_datetime = datetime.utcfromtimestamp(paginate_after_timestamp)
+                query = query.filter(Link.created_at > paginate_after_datetime)
+            except ValueError:
+                flash('Invalid "paginate_after" value. It must be a positive integer UNIX timestamp.', 'error')
+                abort(400)
+        # Add more filters as needed
+
+    # Order the results (newest first)
+    query = query.order_by(Link.created_at.desc())
+
+    # Eager load tags to optimize database queries
+    query = query.options(joinedload(Link.tags))
+
+    return query
+
 # Home page
 @app.route('/', defaults={'filters': ''})
 @app.route('/<path:filters>')
 def index(filters):
     """
     Display bookmarks with optional filtering based on URL path parameters.
-    Example URL: /u:miles/before:1732360224/tag:macos
+    Example URLs:
+      - /u:miles/paginate:1732390462/tag:macos
+      - /u:miles/paginate_after:1732390462/tag:macos
     """
     filter_dict = parse_filters(filters)
-    query = Link.query
-    query = apply_filters(query, filter_dict)
-    links = query.all()
+    
+    # Base query with applied filters except 'paginate' and 'paginate_after'
+    base_query = Link.query
+    base_query = apply_filters(base_query, filter_dict, exclude_keys=['paginate', 'paginate_after'])
 
-    # Retrieve 'floor' from query parameters, default to 1
-    floor = request.args.get('floor', default=1, type=int)
-    if floor < 1:
-        flash('Floor must be a positive integer.', 'error')
-        abort(400)
+    # Calculate total number of matching links (for result count and tag cloud)
+    result_count = base_query.count()
 
-    # Calculate the number of results
-    result_count = len(links)
-
-    # Determine if a user filter is applied
-    username = filter_dict['u'][0] if 'u' in filter_dict else None
-
-    # Compute tag counts for the tag cloud
+    # Compute tag counts for tag cloud based on total query
     tag_counts = defaultdict(int)
-    for link in links:
+    total_links = base_query.options(joinedload(Link.tags)).all()
+    for link in total_links:
         for tag in link.tags:
             if tag.name.startswith('.'):
                 # Include private tags only if the link belongs to the current user
@@ -84,6 +206,12 @@ def index(filters):
                     tag_counts[tag.name] += 1
             else:
                 tag_counts[tag.name] += 1
+
+    # Retrieve 'floor' from query parameters, default to 1
+    floor = request.args.get('floor', default=1, type=int)
+    if floor < 1:
+        flash('Floor must be a positive integer.', 'error')
+        abort(400)
 
     # Filter tags based on 'floor'
     filtered_tag_counts = {name: count for name, count in tag_counts.items() if count >= floor}
@@ -115,13 +243,92 @@ def index(filters):
         for name, count in sorted_tags
     ]
 
-    # Determine additional filter options based on current filtered links
-    has_private = any(link.private for link in links)
-    has_public = any(not link.private for link in links)
-    has_unread = any(link.read_later for link in links)
-    has_untagged = any(len(link.tags) == 0 for link in links)
+    # Pagination parameters
+    PAGE_SIZE = 12
 
-    # Helper function to generate updated filter path
+    # Define the helper function before its usage
+    def generate_paginate_url(filters, key, timestamp):
+        """
+        Generate a new filter path with updated 'paginate' or 'paginate_after' parameter.
+        Preserves existing filters.
+        """
+        new_filter_dict = defaultdict(list, filters)
+        new_filter_dict[key] = [str(timestamp)]
+        # Remove the opposite pagination filter to avoid conflicts
+        if key == 'paginate':
+            if 'paginate_after' in new_filter_dict:
+                del new_filter_dict['paginate_after']
+        elif key == 'paginate_after':
+            if 'paginate' in new_filter_dict:
+                del new_filter_dict['paginate']
+        parts = []
+        for k, values in new_filter_dict.items():
+            for v in values:
+                parts.append(f"{k}:{v}")
+        new_filters = '/'.join(parts)
+        return url_for('index', filters=new_filters, floor=floor)
+
+    # Determine current pagination state
+    paginate = filter_dict.get('paginate', [None])[0]
+    paginate_after = filter_dict.get('paginate_after', [None])[0]
+
+    # Apply pagination filters
+    paginated_query = apply_filters(Link.query, filter_dict, exclude_keys=[])
+
+    # Fetch links based on 'paginate' and 'paginate_after'
+    links = paginated_query.order_by(Link.created_at.desc()).limit(PAGE_SIZE).all()
+
+    # Determine if there are more links for pagination
+    has_next = False
+    has_prev = False
+    prev_url = None
+    next_url = None
+
+    if paginate:
+        # "Later" link exists if we fetched PAGE_SIZE links
+        if len(links) == PAGE_SIZE:
+            has_next = True
+            last_link = links[-1]
+            next_paginate = int(last_link.created_at.timestamp())
+            next_url = generate_paginate_url(filter_dict, 'paginate', next_paginate)
+        # "Earlier" link exists if there is a paginate timestamp
+        if paginate:
+            has_prev = True
+            first_link = links[0] if links else None
+            if first_link:
+                prev_paginate_after = int(first_link.created_at.timestamp())
+                prev_url = generate_paginate_url(filter_dict, 'paginate_after', prev_paginate_after)
+    elif paginate_after:
+        # "Earlier" link exists if we have a paginate_after filter
+        if len(links) > 0:
+            has_prev = True
+            first_link = links[0]
+            prev_paginate_after = int(first_link.created_at.timestamp())
+            prev_url = generate_paginate_url(filter_dict, 'paginate_after', prev_paginate_after)
+        # "Later" link exists if we fetched PAGE_SIZE links
+        if len(links) == PAGE_SIZE:
+            has_next = True
+            last_link = links[-1]
+            next_paginate = int(last_link.created_at.timestamp())
+            next_url = generate_paginate_url(filter_dict, 'paginate', next_paginate)
+    else:
+        # Initial page, check if there's a next page
+        if len(links) == PAGE_SIZE:
+            has_next = True
+            last_link = links[-1]
+            next_paginate = int(last_link.created_at.timestamp())
+            next_url = generate_paginate_url(filter_dict, 'paginate', next_paginate)
+
+    # Retrieve 'username' filter if present
+    username = filter_dict.get('u', [None])[0]
+
+    # Determine additional filter options based on total filtered links
+    has_private = any(link.private for link in total_links)
+    has_public = any(not link.private for link in total_links)
+    has_unread = any(link.read_later for link in total_links)
+    has_untagged = any(len(link.tags) == 0 for link in total_links)
+
+    # Helper function to generate updated filter path for additional filters
     def generate_filter_path(current_filters, key, value):
         new_filter_dict = defaultdict(list, current_filters)
         new_filter_dict[key] = [value]  # Overwrite existing filter for key
@@ -166,123 +373,12 @@ def index(filters):
         username=username,              # Pass the username if a user filter is applied
         result_count=result_count,      # Pass the number of results
         floor=floor,                    # Pass the floor to the template
-        filter_options=filter_options    # Pass additional filter options
+        filter_options=filter_options,  # Pass additional filter options
+        has_prev=has_prev,
+        has_next=has_next,
+        prev_url=prev_url,
+        next_url=next_url
     )
-
-def parse_filters(filters):
-    """
-    Parse filter path segments into a dictionary.
-    Supports multiple 'tag' filters and other specific filters.
-    """
-    filter_parts = filters.split('/') if filters else []
-    filter_dict = defaultdict(list)
-
-    for part in filter_parts:
-        if ':' in part:
-            key, value = part.split(':', 1)
-            key = key.lower()
-            value = unquote(value)
-            if key in ['tag', 'u', 'before', 'after', 'read_later', 'untagged', 'private']:
-                filter_dict[key].append(value)
-            else:
-                flash(f'Unknown filter key: "{key}".', 'error')
-                abort(400)
-        else:
-            flash(f'Invalid filter format: "{part}". Expected key:value.', 'error')
-            abort(400)  # Bad Request
-
-    return filter_dict
-
-def apply_filters(query, filter_dict):
-    """
-    Apply filters from the filter_dict to the SQLAlchemy query.
-    """
-    if 'u' in filter_dict:
-        username = filter_dict['u'][0]  # Assuming single user filter
-        user = User.query.filter_by(username=username).first()
-        if not user:
-            flash(f'User "{username}" not found.', 'error')
-            abort(404)
-        query = query.filter(Link.user_id == user.id)
-    else:
-        # If no user specified, show public links or user's own links if authenticated
-        if current_user.is_authenticated:
-            query = query.filter(
-                (Link.user_id == current_user.id) | (Link.private == False)
-            )
-        else:
-            query = query.filter(Link.private == False)
-
-    # Filter by before timestamp
-    if 'before' in filter_dict:
-        try:
-            timestamp = int(filter_dict['before'][0])  # Assuming single before filter
-            dt_before = datetime.utcfromtimestamp(timestamp)
-            query = query.filter(Link.created_at < dt_before)
-        except ValueError:
-            flash('Invalid "before" timestamp. It must be a valid Unix timestamp.', 'error')
-            abort(400)
-
-    # Filter by after timestamp
-    if 'after' in filter_dict:
-        try:
-            timestamp = int(filter_dict['after'][0])  # Assuming single after filter
-            dt_after = datetime.utcfromtimestamp(timestamp)
-            query = query.filter(Link.created_at > dt_after)
-        except ValueError:
-            flash('Invalid "after" timestamp. It must be a valid Unix timestamp.', 'error')
-            abort(400)
-
-    # Filter by tags
-    if 'tag' in filter_dict and filter_dict['tag']:
-        tag_names = [t.lower() for t in filter_dict['tag']]
-        tags = Tag.query.filter(Tag.name.in_(tag_names)).all()
-        if not tags:
-            # No links have these tags
-            query = query.filter(False)  # No results
-        else:
-            # Filter links that have all the specified tags
-            for tag in tags:
-                query = query.filter(Link.tags.contains(tag))
-            # Alternatively, to filter links that have any of the specified tags, use:
-            # query = query.filter(Link.tags.any(Tag.name.in_(tag_names)))
-
-    # **New Filter: untagged**
-    if 'untagged' in filter_dict:
-        untagged_values = filter_dict['untagged']
-        for value in untagged_values:
-            if value.lower() == 'true':
-                query = query.filter(~Link.tags.any())
-            elif value.lower() == 'false':
-                pass  # No filtering needed
-            else:
-                flash('Invalid value for "untagged" filter. Use true or false.', 'error')
-                abort(400)
-
-    # **Existing Filter: read_later**
-    if 'read_later' in filter_dict:
-        if not current_user.is_authenticated:
-            flash('You need to be logged in to filter by read_later.', 'error')
-            abort(403)
-        read_later_values = filter_dict['read_later']
-        for value in read_later_values:
-            if value.lower() in ['true', '1', 'yes']:
-                query = query.filter(Link.read_later == True)
-            elif value.lower() in ['false', '0', 'no']:
-                query = query.filter(Link.read_later == False)
-            else:
-                flash('Invalid value for "read_later" filter. Use true or false.', 'error')
-                abort(400)
-        # Ensure we only show the current user's read_later links
-        query = query.filter(Link.user_id == current_user.id)
-
-    # Order the results (newest first)
-    query = query.order_by(Link.created_at.desc())
-
-    # Eager load tags to optimize database queries
-    query = query.options(db.joinedload(Link.tags))
-
-    return query
 
 # User registration
 @app.route('/register', methods=['GET', 'POST'])
@@ -382,7 +478,7 @@ def submit_link():
             link.tags.append(tag)
 
         db.session.commit()
-        flash('Link submitted successfully.')
+        #flash('Link submitted successfully.')
         return redirect(url_for('index'))
     
     return render_template('submit.html', form=form)
