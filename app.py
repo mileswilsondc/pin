@@ -73,8 +73,11 @@ def index(filters):
     for link in links:
         for tag in link.tags:
             if tag.name.startswith('.'):
-                continue  # Skip hidden tags
-            tag_counts[tag.name] += 1
+                # Include private tags only if the link belongs to the current user
+                if current_user.is_authenticated and link.user_id == current_user.id:
+                    tag_counts[tag.name] += 1
+            else:
+                tag_counts[tag.name] += 1
 
     # Sort tags by frequency and limit to top 100
     sorted_tags = sorted(tag_counts.items(), key=lambda x: x[1], reverse=True)[:100]
