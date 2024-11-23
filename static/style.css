@@ -361,3 +361,52 @@ section h2 {
     cursor: pointer;
     display: inline-block;
 }
+
+/* Badge Styles */
+.badge {
+    display: inline-block;
+    padding: 0.25em 0.6em;
+    font-size: 75%;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    background-color: #6c757d; /* Default badge color */
+    border-radius: 0.25rem;
+    margin-right: 0.5em;
+    text-transform: lowercase;
+}
+
+/* Specific Badge Colors */
+.badge.username-badge {
+    background-color: #007bff; /* Blue for username */
+}
+
+.badge.filter-badge.tag {
+    background-color: #17a2b8; /* Teal for tags */
+}
+
+.badge.filter-badge.before,
+.badge.filter-badge.after {
+    background-color: #ffc107; /* Yellow for date filters */
+    color: #212529; /* Dark text for contrast */
+}
+
+.badge.filter-badge.paginate,
+.badge.filter-badge.paginate_after {
+    background-color: #dc3545; /* Red for pagination */
+}
+
+/* Hover Effects for Badges */
+.badge:hover {
+    opacity: 0.8;
+    cursor: pointer;
+}
+
+.menu-filter {
+    color: #aaa;
+    text-transform: lowercase;
+}
+
+.pagination-link {
+    text-transform: lowercase;
+}

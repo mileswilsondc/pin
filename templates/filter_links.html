@@ -5,46 +5,40 @@
 {% block content %}
 
 <div class="filter-context">
-    <span class="small-username">
+
+    <!-- Line 1: Username (if any), Result Count, and Active Filters as Badges -->
+    <div class="search-info">
         {% if username %}
-        <b>{{ username }}</b>&nbsp;
+            <span class="search-username"><b>{{ username }}</b></span>
         {% endif %}
-        <small>{{ result_count }} 📌{{ 's' if result_count != 1 else '' }}</small>
-    </span>
-    
-    {% if filters %}
-    <span class="active-filters">
-        <h3>Active Filters:</h3>
-        <ul>
-            {% for key, value in filters.items() %}
-            <li><strong>{{ key.capitalize() }}:</strong> 
-                {% if value is iterable and value is not string %}
-                {{ value | join(', ') }}
-                {% else %}
-                {{ value }}
-                {% endif %}
-            </li>
-            {% endfor %}
-        </ul>
-    </span>
-    {% endif %}
-    
-    {% if filter_options %}
-    <div class="filter-options">
-        {% for name, url in filter_options %}
-        <a href="{{ url }}">{{ name.capitalize() }}</a>
-        {% if not loop.last %} ‧ {% endif %}
+        <span class="result-count">{{ result_count }} 📌{{ 's' if result_count != 1 else '' }}</span>
+        
+        {% for key, values in filters.items() %}
+            {% if key in ['tag', 'before', 'after', 'paginate', 'paginate_after'] %}
+                {% for value in values %}
+                    <span class="badge filter-badge {{ key }}">{{ key.capitalize() }}: {{ value }}</span>
+                {% endfor %}
+            {% endif %}
         {% endfor %}
     </div>
-    {% endif %}
+    
+    <!-- Line 2: Menu Filters -->
+    <div class="menu-filters">
+        {% for name, url in filter_options %}
+            <a href="{{ url }}" class="menu-filter">{{ name.capitalize() }}</a>
+        {% endfor %}
+    </div>
+    
+    <!-- Line 3: Pagination Links -->
     <div class="pagination">
         {% if has_next %}
-            <a href="{{ next_url }}" class="pagination-link">← Earlier</a>
+            <a href="{{ next_url }}" class="pagination-link">Earlier</a>
         {% endif %}
         {% if has_prev %}
-            <a href="{{ prev_url }}" class="pagination-link">Later →</a>
+            <a href="{{ prev_url }}" class="pagination-link">Later</a>
         {% endif %}
     </div>
+    
 </div>
 
 <div class="content-container">
@@ -56,6 +50,14 @@
         {% else %}
         <p>No bookmarks match the specified filters.</p>
         {% endif %}
+        <div class="pagination">
+            {% if has_next %}
+                <a href="{{ next_url }}" class="pagination-link">Earlier</a>
+            {% endif %}
+            {% if has_prev %}
+                <a href="{{ prev_url }}" class="pagination-link">Later</a>
+            {% endif %}
+        </div>
     </div>
     
     <!-- Tag Cloud Section -->
