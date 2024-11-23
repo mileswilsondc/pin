@@ -198,11 +198,6 @@ span.manipulate {
     line-height: 1.2;
 }
 
-.tag-cloud a:hover {
-    color: #000;
-    text-decoration: underline;
-}
-
 .recent-links {
     list-style-type: none;
     padding: 0;
@@ -274,23 +269,6 @@ section h2 {
     margin-right: 0.5em;
 }
 
-.links-container {
-    width: 100%;
-}
-
-@media (min-width: 768px) {
-    .tag-cloud {
-        width: 25vw;
-        margin-left: 20px;
-        float: right;
-    }
-    
-    .links-container {
-        width: 75vw;
-        margin-right: 20px;
-    }
-}
-
 .read-later {
     color: #bb4411;
 }
@@ -306,8 +284,60 @@ section h2 {
     padding-right: 1px;
 }
 
+.floor-filters {
+    color: #aaa;
+    text-align: center;
+    text-transform: lowercase;
+}
+
+.floor-filters a {
+    color: #aaa;
+}
+
 @media print {
     .container {
         width: 100%;
+    }
+}
+
+/* Responsive layout */
+.content-container {
+    display: block;
+}
+
+.links-container, .tag-cloud-container {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.filter-options {
+    display: inline;
+    margin-left: 15px;
+    text-transform: lowercase;
+    color: #aaa;
+}
+
+.filter-options a {
+    color: #aaa;
+}
+
+.filter-context {
+    margin-bottom: 5px;
+}
+
+@media (min-width: 768px) {
+    .content-container {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .links-container {
+        width: 70%;
+        float: left;
+    }
+
+    .tag-cloud-container {
+        width: 28%;
+        float: right;
     }
 }

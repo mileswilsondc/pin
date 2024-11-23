@@ -4,63 +4,41 @@
 
 {% block content %}
 
-{% if filters %}
-<div class="active-filters">
-    <h3>Active Filters:</h3>
-    <ul>
-        {% for key, value in filters.items() %}
-        <li><strong>{{ key.capitalize() }}:</strong> 
-            {% if value is iterable and value is not string %}
-            {{ value | join(', ') }}
-            {% else %}
-            {{ value }}
-            {% endif %}
-        </li>
-        {% endfor %}
-    </ul>
-</div>
-{% endif %}
-
-<div class="small-username">
-    {% if username %}
-    <b>{{ username }}</b>&nbsp;
+<div class="filter-context">
+    <span class="small-username">
+        {% if username %}
+        <b>{{ username }}</b>&nbsp;
+        {% endif %}
+        <small>{{ result_count }} 📌{{ 's' if result_count != 1 else '' }}</small>
+    </span>
+    
+    {% if filters %}
+    <span class="active-filters">
+        <h3>Active Filters:</h3>
+        <ul>
+            {% for key, value in filters.items() %}
+            <li><strong>{{ key.capitalize() }}:</strong> 
+                {% if value is iterable and value is not string %}
+                {{ value | join(', ') }}
+                {% else %}
+                {{ value }}
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </span>
     {% endif %}
-    <small>{{ result_count }} result{{ 's' if result_count != 1 else '' }}</small>
-</div>
-
-<div class="links-and-tags">
-    <!-- Tag Cloud Section -->
-    {% if tags %}
-    <div class="tag-cloud">
-        {% for tag in tags %}
-        {% if filters and 'tag' in filters and tag.name in filters['tag'] %}
-        {# Tag already in filters; optionally highlight or disable the link #}
-        <span style="font-size: {{ tag.size }}px;" class="tag-cloud-link active-tag">{{ tag.name }}</span>
-        {% else %}
-        {% if filters %}
-        {% set new_filters = '' %}
-        {% for key, value in filters.items() %}
-        {% if key == 'tag' %}
-        {% for t in value %}
-        {% set new_filters = new_filters + 'tag:' + t + '/' %}
-        {% endfor %}
-        {% else %}
-        {% set new_filters = new_filters + key + ':' + value[0] + '/' %}
-        {% endif %}
-        {% endfor %}
-        {% set new_filters = new_filters + 'tag:' + tag.name %}
-        {% else %}
-        {% set new_filters = 'tag:' + tag.name %}
-        {% endif %}
-        <a href="{{ url_for('index', filters=new_filters) }}"
-        style="font-size: {{ tag.size }}px;"
-        class="tag-cloud-link">{{ tag.name }}</a>
-        {% endif %}
+    
+    {% if filter_options %}
+    <div class="filter-options">
+        {% for name, url in filter_options %}
+        <a href="{{ url }}">{{ name.capitalize() }}</a>
+        {% if not loop.last %} ‧ {% endif %}
         {% endfor %}
     </div>
     {% endif %}
-    
-    <!-- Links Section -->
+</div>
+<div class="content-container">
     <div class="links-container">
         {% if links %}
         {% for link in links %}
@@ -70,6 +48,47 @@
         <p>No bookmarks match the specified filters.</p>
         {% endif %}
     </div>
-</div>
-
-{% endblock %}
+    
+    
+    <!-- Tag Cloud Section -->
+    <div class="tag-cloud-container">
+        {% if tags %}
+        <div class="tag-cloud">
+            {% for tag in tags %}
+            {% if filters and 'tag' in filters and tag.name in filters['tag'] %}
+            {# Tag already in filters; optionally highlight or disable the link #}
+            <span style="font-size: {{ tag.size }}px;" class="tag-cloud-link active-tag">{{ tag.name }}</span>
+            {% else %}
+            {% if filters %}
+            {% set new_filters = '' %}
+            {% for key, value in filters.items() %}
+            {% if key == 'tag' %}
+            {% for t in value %}
+            {% set new_filters = new_filters + 'tag:' + t + '/' %}
+            {% endfor %}
+            {% else %}
+            {% set new_filters = new_filters + key + ':' + value[0] + '/' %}
+            {% endif %}
+            {% endfor %}
+            {% set new_filters = new_filters + 'tag:' + tag.name %}
+            {% else %}
+            {% set new_filters = 'tag:' + tag.name %}
+            {% endif %}
+            <a href="{{ url_for('index', filters=new_filters, floor=floor) }}"
+            style="font-size: {{ tag.size }}px;"
+            class="tag-cloud-link">{{ tag.name }}</a>
+            {% endif %}
+            {% endfor %}
+        </div>
+        <div class="floor-filters">
+            Tag cloud floor:
+                <a href="{{ url_for('index', filters=filters | join('/'), floor=1) }}">All Tags</a>
+                ‧ <a href="{{ url_for('index', filters=filters | join('/'), floor=2) }}">2</a>
+                ‧ <a href="{{ url_for('index', filters=filters | join('/'), floor=5) }}">5</a>
+                ‧ <a href="{{ url_for('index', filters=filters | join('/'), floor=10) }}">10</a>
+                ‧ <a href="{{ url_for('index', filters=filters | join('/'), floor=20) }}">20</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endblock %}

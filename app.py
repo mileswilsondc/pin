@@ -62,6 +62,12 @@ def index(filters):
     query = apply_filters(query, filter_dict)
     links = query.all()
 
+    # Retrieve 'floor' from query parameters, default to 1
+    floor = request.args.get('floor', default=1, type=int)
+    if floor < 1:
+        flash('Floor must be a positive integer.', 'error')
+        abort(400)
+
     # Calculate the number of results
     result_count = len(links)
 
@@ -79,8 +85,11 @@ def index(filters):
             else:
                 tag_counts[tag.name] += 1
 
+    # Filter tags based on 'floor'
+    filtered_tag_counts = {name: count for name, count in tag_counts.items() if count >= floor}
+
     # Sort tags by frequency and limit to top 100
-    sorted_tags = sorted(tag_counts.items(), key=lambda x: x[1], reverse=True)[:100]
+    sorted_tags = sorted(filtered_tag_counts.items(), key=lambda x: x[1], reverse=True)[:100]
     # Sort alphabetically
     sorted_tags.sort(key=lambda x: x[0])
 
@@ -106,19 +115,64 @@ def index(filters):
         for name, count in sorted_tags
     ]
 
+    # Determine additional filter options based on current filtered links
+    has_private = any(link.private for link in links)
+    has_public = any(not link.private for link in links)
+    has_unread = any(link.read_later for link in links)
+    has_untagged = any(len(link.tags) == 0 for link in links)
+
+    # Helper function to generate updated filter path
+    def generate_filter_path(current_filters, key, value):
+        new_filter_dict = defaultdict(list, current_filters)
+        new_filter_dict[key] = [value]  # Overwrite existing filter for key
+        parts = []
+        for k, vals in new_filter_dict.items():
+            for v in vals:
+                parts.append(f"{k}:{v}")
+        return '/'.join(parts)
+
+    # Generate URLs for additional filters
+    filter_options = []
+
+    if has_private:
+        # Show option to filter private links
+        new_filters = generate_filter_path(filter_dict, 'private', 'true')
+        url_private = url_for('index', filters=new_filters, floor=floor)
+        filter_options.append(('private', url_private))
+
+    if has_public:
+        # Show option to filter public links
+        new_filters = generate_filter_path(filter_dict, 'private', 'false')
+        url_public = url_for('index', filters=new_filters, floor=floor)
+        filter_options.append(('public', url_public))
+
+    if has_unread:
+        # Show option to filter unread links
+        new_filters = generate_filter_path(filter_dict, 'read_later', 'true')
+        url_unread = url_for('index', filters=new_filters, floor=floor)
+        filter_options.append(('unread', url_unread))
+
+    if has_untagged:
+        # Show option to filter untagged links
+        new_filters = generate_filter_path(filter_dict, 'untagged', 'true')
+        url_untagged = url_for('index', filters=new_filters, floor=floor)
+        filter_options.append(('untagged', url_untagged))
+
     return render_template(
         'filter_links.html',
         links=links,
         filters=filter_dict,
-        tags=tags_with_sizes,  # Pass the tag cloud data to the template
-        username=username,      # Pass the username if a user filter is applied
-        result_count=result_count  # Pass the number of results
+        tags=tags_with_sizes,           # Pass the tag cloud data to the template
+        username=username,              # Pass the username if a user filter is applied
+        result_count=result_count,      # Pass the number of results
+        floor=floor,                    # Pass the floor to the template
+        filter_options=filter_options    # Pass additional filter options
     )
 
 def parse_filters(filters):
     """
     Parse filter path segments into a dictionary.
-    Supports multiple 'tag' filters.
+    Supports multiple 'tag' filters and other specific filters.
     """
     filter_parts = filters.split('/') if filters else []
     filter_dict = defaultdict(list)
@@ -128,10 +182,11 @@ def parse_filters(filters):
             key, value = part.split(':', 1)
             key = key.lower()
             value = unquote(value)
-            if key == 'tag':
+            if key in ['tag', 'u', 'before', 'after', 'read_later', 'untagged', 'private']:
                 filter_dict[key].append(value)
             else:
-                filter_dict[key].append(value)  # To support potential multiple values for other keys
+                flash(f'Unknown filter key: "{key}".', 'error')
+                abort(400)
         else:
             flash(f'Invalid filter format: "{part}". Expected key:value.', 'error')
             abort(400)  # Bad Request
@@ -192,7 +247,19 @@ def apply_filters(query, filter_dict):
             # Alternatively, to filter links that have any of the specified tags, use:
             # query = query.filter(Link.tags.any(Tag.name.in_(tag_names)))
 
-    # **New Filter: read_later**
+    # **New Filter: untagged**
+    if 'untagged' in filter_dict:
+        untagged_values = filter_dict['untagged']
+        for value in untagged_values:
+            if value.lower() == 'true':
+                query = query.filter(~Link.tags.any())
+            elif value.lower() == 'false':
+                pass  # No filtering needed
+            else:
+                flash('Invalid value for "untagged" filter. Use true or false.', 'error')
+                abort(400)
+
+    # **Existing Filter: read_later**
     if 'read_later' in filter_dict:
         if not current_user.is_authenticated:
             flash('You need to be logged in to filter by read_later.', 'error')
