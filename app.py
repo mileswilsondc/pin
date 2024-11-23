@@ -1,5 +1,5 @@
 # app.py
-from flask import Flask, render_template, redirect, url_for, request, flash, abort, g
+from flask import Flask, render_template, redirect, url_for, request, flash, abort, g, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import (
     LoginManager,
@@ -491,6 +491,21 @@ def profile():
         oldest_bookmark_date=oldest_bookmark_date,
         newest_bookmark_date=newest_bookmark_date
     )
+
+@app.route('/read_redirect/<int:link_id>')
+@login_required
+def read_redirect(link_id):
+    link = Link.query.get_or_404(link_id)
+    
+    if link.user_id != current_user.id:
+        abort(403)
+    
+    if current_user.mark_toread_as_read_on_click and link.read_later:
+        link.read_later = False
+        db.session.commit()
+        flash(f"Marked '{link.title}' as read.", "success")
+    
+    return redirect(link.url)
 
 @app.before_request
 def start_timer():

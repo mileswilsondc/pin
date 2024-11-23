@@ -156,13 +156,17 @@ nav .logo {
 .manipulate button.action-link {
     color: lightgray;
     text-transform: lowercase;
-    margin-right: 5px;
+    margin-right: 3px;
     text-decoration: none;
     cursor: pointer;
     background: none;
     border: none;
     padding: 0;
     font: inherit;
+}
+
+span.manipulate {
+    margin-left: 3px;
 }
 
 .copy-link {
@@ -183,6 +187,7 @@ nav .logo {
     padding: 10px;
     border: 1px solid #ddd;
     background-color: #f9f9f9;
+    text-align: center;
 }
 
 .tag-cloud a {
@@ -288,6 +293,10 @@ section h2 {
 
 .read-later {
     color: #bb4411;
+}
+
+.tags .tag {
+    color: #aa5511;
 }
 
 .private-tag {
