@@ -9,7 +9,10 @@ from flask_login import (
     current_user,
 )
 from models import db, User, Link, Tag, link_tags
-from forms import RegistrationForm, LoginForm, LinkForm, EditLinkForm, PreferencesForm, AdminEditUserForm, AdminRegistrationForm
+from forms import (
+    RegistrationForm, LoginForm, LinkForm, EditLinkForm,
+    PreferencesForm, AdminEditUserForm, AdminRegistrationForm
+)
 from archive import archive_page
 import pytz
 from datetime import datetime
@@ -18,6 +21,7 @@ from functools import wraps
 from flask_wtf import CSRFProtect
 from urllib.parse import unquote
 from sqlalchemy import func, desc
+from collections import defaultdict
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
@@ -46,13 +50,132 @@ def admin_required(f):
     return decorated_function
 
 # Home page
-@app.route('/')
-def index():
-    if current_user.is_authenticated:
-        links = Link.query.filter_by(user_id=current_user.id).order_by(Link.id.desc()).all()
+@app.route('/', defaults={'filters': ''})
+@app.route('/<path:filters>')
+def index(filters):
+    """
+    Display bookmarks with optional filtering based on URL path parameters.
+    Example URL: /u:miles/before:1732360224/tag:macos
+    """
+    filter_dict = parse_filters(filters)
+    query = Link.query
+    query = apply_filters(query, filter_dict)
+    links = query.all()
+
+    # Compute tag counts for the tag cloud
+    tag_counts = defaultdict(int)
+    for link in links:
+        for tag in link.tags:
+            if tag.name.startswith('.'):
+                continue  # Skip hidden tags
+            tag_counts[tag.name] += 1
+
+    # Sort tags by frequency and limit to top 100
+    sorted_tags = sorted(tag_counts.items(), key=lambda x: x[1], reverse=True)[:100]
+    # Sort alphabetically
+    sorted_tags.sort(key=lambda x: x[0])
+
+    # Determine min and max counts for font size scaling
+    counts = [count for name, count in sorted_tags]
+    if counts:
+        max_count = max(counts)
+        min_count = min(counts)
     else:
-        links = Link.query.filter_by(private=False).order_by(Link.id.desc()).all()
-    return render_template('index.html', links=links)
+        max_count = min_count = 1  # Avoid division by zero
+
+    # Function to map count to font size
+    def map_count_to_size(count, min_count, max_count, min_size=10, max_size=30):
+        if max_count == min_count:
+            return int((max_size + min_size) / 2)
+        else:
+            size = min_size + (count - min_count) * (max_size - min_size) / (max_count - min_count)
+            return int(round(size))
+
+    # Create list of tags with computed sizes
+    tags_with_sizes = [
+        {'name': name, 'count': count, 'size': map_count_to_size(count, min_count, max_count)}
+        for name, count in sorted_tags
+    ]
+
+    return render_template(
+        'filter_links.html',
+        links=links,
+        filters=filter_dict,
+        tags=tags_with_sizes  # Pass the tag cloud data to the template
+    )
+
+def parse_filters(filters):
+    """
+    Parse filter path segments into a dictionary.
+    """
+    filter_parts = filters.split('/') if filters else []
+    filter_dict = {}
+
+    for part in filter_parts:
+        if ':' in part:
+            key, value = part.split(':', 1)
+            filter_dict[key.lower()] = unquote(value)
+        else:
+            flash(f'Invalid filter format: "{part}". Expected key:value.', 'error')
+            abort(400)  # Bad Request
+
+    return filter_dict
+
+def apply_filters(query, filter_dict):
+    """
+    Apply filters from the filter_dict to the SQLAlchemy query.
+    """
+    # Filter by user
+    if 'u' in filter_dict:
+        username = filter_dict['u']
+        user = User.query.filter_by(username=username).first()
+        if not user:
+            flash(f'User "{username}" not found.', 'error')
+            abort(404)
+        query = query.filter(Link.user_id == user.id)
+    else:
+        # If no user specified, show public links or user's own links if authenticated
+        if current_user.is_authenticated:
+            query = query.filter(
+                (Link.user_id == current_user.id) | (Link.private == False)
+            )
+        else:
+            query = query.filter(Link.private == False)
+
+    # Filter by before timestamp
+    if 'before' in filter_dict:
+        try:
+            timestamp = int(filter_dict['before'])
+            dt_before = datetime.utcfromtimestamp(timestamp)
+            query = query.filter(Link.created_at < dt_before)
+        except ValueError:
+            flash('Invalid "before" timestamp. It must be a valid Unix timestamp.', 'error')
+            abort(400)
+
+    # Filter by after timestamp
+    if 'after' in filter_dict:
+        try:
+            timestamp = int(filter_dict['after'])
+            dt_after = datetime.utcfromtimestamp(timestamp)
+            query = query.filter(Link.created_at > dt_after)
+        except ValueError:
+            flash('Invalid "after" timestamp. It must be a valid Unix timestamp.', 'error')
+            abort(400)
+
+    # Filter by tag
+    if 'tag' in filter_dict:
+        tag_name = filter_dict['tag'].lower()
+        tag = Tag.query.filter_by(name=tag_name).first()
+        if tag:
+            query = query.filter(Link.tags.contains(tag))
+        else:
+            # No links have this tag
+            query = query.filter(False)  # No results
+
+    # Order the results (newest first)
+    query = query.order_by(Link.created_at.desc())
+
+    return query
 
 # User registration
 @app.route('/register', methods=['GET', 'POST'])

@@ -1,0 +1,44 @@
+<!-- templates/filter_links.html -->
+{% extends 'base.html' %}
+{% from 'macros.html' import link_item %}
+
+{% block content %}
+
+{% if filters %}
+<div class="active-filters">
+    <h3>Active Filters:</h3>
+    <ul>
+        {% for key, value in filters.items() %}
+        <li><strong>{{ key.capitalize() }}:</strong> {{ value }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<div class="links-and-tags">
+    <!-- Tag Cloud Section -->
+    {% if tags %}
+    <div class="tag-cloud">
+        {% for tag in tags %}
+        <a href="{{ url_for('tag_links', tag_name=tag.name) }}"
+        style="font-size: {{ tag.size }}px;"
+        class="tag-cloud-link">
+        {{ tag.name }}
+    </a>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Links Section -->
+<div class="links-container">
+    {% if links %}
+    {% for link in links %}
+    {{ link_item(link, show_user=True, current_user=current_user) }}
+    {% endfor %}
+    {% else %}
+    <p>No bookmarks match the specified filters.</p>
+    {% endif %}
+</div>
+</div>
+
+{% endblock %}
