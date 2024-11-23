@@ -166,8 +166,10 @@ def user_links(username):
 
     if is_owner:
         links = Link.query.filter_by(user_id=user.id).order_by(Link.id.desc()).all()
+        bookmark_count = links.__len__()
     else:
         links = Link.query.filter_by(user_id=user.id, private=False).order_by(Link.id.desc()).all()
+        bookmark_count = links.__len__()
 
     # Compute tag counts
     tag_counts = {}
@@ -204,7 +206,14 @@ def user_links(username):
         size = map_count_to_size(count, min_count, max_count)
         tags_with_sizes.append({'name': name, 'count': count, 'size': size})
 
-    return render_template('user_links.html', links=links, user=user, tags=tags_with_sizes)
+    return render_template(
+        'user_links.html',
+        links=links,
+        user=user,
+        tags=tags_with_sizes,
+        bookmark_count=bookmark_count,
+        is_owner=is_owner
+    )
 
 # Browse by tag
 @app.route('/tag/<tag_name>')

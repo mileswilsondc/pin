@@ -3,17 +3,17 @@
 {% from 'macros.html' import link_item %}
 
 {% block content %}
-<div class="small-username"><b>{{ user.username }}</b></div>
+<div class="small-username"><b>{{ user.username }}</b>&nbsp;<small>{{ bookmark_count }}</small></div>
 
 {% if tags %}
 <div class="tag-cloud">
     {% for tag in tags %}
     <a href="{{ url_for('tag_links', tag_name=tag.name) }}"
-    style="font-size: {{ tag.size }}px;"
-    class="tag-cloud-link">
-    {{ tag.name }}
-</a>
-{% endfor %}
+       style="font-size: {{ tag.size }}px;"
+       class="tag-cloud-link">
+        {{ tag.name }}
+    </a>
+    {% endfor %}
 </div>
 {% endif %}
 
