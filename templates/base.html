@@ -16,7 +16,6 @@
             <a href="{{ url_for('submit_link') }}">Add pin</a>
             <a href="{{ url_for('my_links') }}">My links</a>
             <a href="{{ url_for('unread_links') }}">Read later</a>
-            <a href="{{ url_for('faq') }}">FAQ</a>
             <a href="{{ url_for('preferences') }}">Preferences</a>
             <a href="{{ url_for('profile') }}">Profile</a> <!-- New Profile Link -->
             {% if current_user.admin %}
@@ -42,6 +41,8 @@
         {% block content %}{% endblock %}
         <hr>
         <footer>
+            <a href="{{ url_for('faq') }}">FQA</a>
+            <a href="{{ url_for('dmca') }}">DMCA</a>
             <i style="float: right; font-size: 0.6em; color: gray">{{ render_time }}</i>
         </footer>
     </div>

@@ -92,6 +92,10 @@ def logout():
     logout_user()
     return redirect(url_for('index'))
 
+@app.route('/dmca', methods=['GET', 'POST'])
+def dmca():
+    return render_template('dmca.html')
+
 # Submit a new link
 @app.route('/submit', methods=['GET', 'POST'])
 @login_required
@@ -445,7 +449,7 @@ def format_relative_time(dt):
         return dt.strftime("%B %Y")
 app.jinja_env.filters['format_relative_time'] = format_relative_time
 
-@app.route('/faq')
+@app.route('/fqa')
 @login_required
 def faq():
     return render_template('faq.html')

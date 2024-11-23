@@ -409,3 +409,8 @@ section {
     padding-left: 1px;
     padding-right: 1px;
 }
+
+footer {
+    text-align: center;
+    text-transform: lowercase;
+}
