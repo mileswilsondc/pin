@@ -84,7 +84,7 @@
             {% else %}
             {% set new_filters = 'tag:' + tag.name %}
             {% endif %}
-            <a href="{{ url_for('index', filters=new_filters, floor=floor) }}"
+            <a href="{{ url_for('index', filters=new_filters) }}"
             style="font-size: {{ tag.size }}px;"
             class="tag-cloud-link">{{ tag.name }}</a>
             {% endif %}

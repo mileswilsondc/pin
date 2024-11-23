@@ -198,8 +198,14 @@ def index(filters):
     # Compute tag counts for tag cloud based on total query
     tag_counts = defaultdict(int)
     total_links = base_query.options(joinedload(Link.tags)).all()
+    # Get active tags from filters
+    active_tags = filter_dict.get('tag', [])
+
     for link in total_links:
         for tag in link.tags:
+            # Skip tags that are in the active filters
+            if tag.name in active_tags:
+                continue
             if tag.name.startswith('.'):
                 # Include private tags only if the link belongs to the current user
                 if current_user.is_authenticated and link.user_id == current_user.id:
