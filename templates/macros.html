@@ -1,18 +1,23 @@
 {% macro link_item(link, show_user=True, current_user=None) %}
 <div class="bookmark">
     {# Determine if the link should use the redirect route #}
-    {% if current_user.is_authenticated and 
-        current_user.mark_toread_as_read_on_click and 
-        link.read_later %}
+    {% if current_user.is_authenticated and link.user_id == current_user.id %}
+    {% if link.read_later %}
         <a class="bookmark-title read-later" href="{{ url_for('read_redirect', link_id=link.id) }}"
         {% if current_user.open_links_in_new_window %}target="_blank" rel="noopener noreferrer"{% endif %}>
         {{ link.title }}
-    </a>
+        </a>
     {% else %}
-    <a class="bookmark-title {% if link.read_later %}read-later{% endif %}" href="{{ link.url }}"
+        <a class="bookmark-title" href="{{ link.url }}"
+        {% if current_user.open_links_in_new_window %}target="_blank" rel="noopener noreferrer"{% endif %}>
+        {{ link.title }}
+        </a>
+    {% endif %}
+{% else %}
+    <a class="bookmark-title" href="{{ link.url }}"
     {% if current_user and current_user.open_links_in_new_window %}target="_blank" rel="noopener noreferrer"{% endif %}>
     {{ link.title }}
-</a>
+    </a>
 {% endif %}
 
 {# Display URL under title if preference is enabled #}
@@ -30,12 +35,15 @@
 {# Tags #}
 {% if link.tags %}
 <div class="tags">
-    {% for tag in link.tags %}
-    {% if not tag.name.startswith('.') or (current_user and current_user.is_authenticated and link.user_id == current_user.id) %}
-    {% set new_filters = 'tag:' + tag.name %}
-    <a class="tag {% if tag.name.startswith('.') %}private-tag{% endif %}" 
-    href="{{ url_for('index', filters=new_filters) }}">{{ tag.name }}</a>
+    {% if current_user and current_user.always_show_tags_alphabetical %}
+    {% set sorted_tags = link.tags | sort(attribute='name') %}
+    {% else %}
+    {% set sorted_tags = link.tags %}
     {% endif %}
+    
+    {% for tag in sorted_tags %}
+    <a class="tag {% if tag.name.startswith('.') %}private-tag{% endif %}" 
+    href="{{ url_for('index', filters='tag:' + tag.name) }}">{{ tag.name }}</a>
     {% endfor %}
 </div>
 {% endif %}
@@ -49,7 +57,7 @@
 
 {# User Info #}
 {% if show_user and link.user %}
-by {{ link.user.username }}
+by <a href="{{ url_for('index', filters='u:' + link.user.username) }}">{{ link.user.username }}</a>
 {% endif %}
 
 {# Manipulate Links #}

@@ -212,6 +212,9 @@ def apply_filters(query, filter_dict):
     # Order the results (newest first)
     query = query.order_by(Link.created_at.desc())
 
+    # Eager load tags to optimize database queries
+    query = query.options(db.joinedload(Link.tags))
+
     return query
 
 # User registration
