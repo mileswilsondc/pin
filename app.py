@@ -107,14 +107,20 @@ def index(filters):
 def parse_filters(filters):
     """
     Parse filter path segments into a dictionary.
+    Supports multiple 'tag' filters.
     """
     filter_parts = filters.split('/') if filters else []
-    filter_dict = {}
+    filter_dict = defaultdict(list)
 
     for part in filter_parts:
         if ':' in part:
             key, value = part.split(':', 1)
-            filter_dict[key.lower()] = unquote(value)
+            key = key.lower()
+            value = unquote(value)
+            if key == 'tag':
+                filter_dict[key].append(value)
+            else:
+                filter_dict[key].append(value)  # To support potential multiple values for other keys
         else:
             flash(f'Invalid filter format: "{part}". Expected key:value.', 'error')
             abort(400)  # Bad Request
@@ -127,7 +133,7 @@ def apply_filters(query, filter_dict):
     """
     # Filter by user
     if 'u' in filter_dict:
-        username = filter_dict['u']
+        username = filter_dict['u'][0]  # Assuming single user filter
         user = User.query.filter_by(username=username).first()
         if not user:
             flash(f'User "{username}" not found.', 'error')
@@ -145,7 +151,7 @@ def apply_filters(query, filter_dict):
     # Filter by before timestamp
     if 'before' in filter_dict:
         try:
-            timestamp = int(filter_dict['before'])
+            timestamp = int(filter_dict['before'][0])  # Assuming single before filter
             dt_before = datetime.utcfromtimestamp(timestamp)
             query = query.filter(Link.created_at < dt_before)
         except ValueError:
@@ -155,22 +161,26 @@ def apply_filters(query, filter_dict):
     # Filter by after timestamp
     if 'after' in filter_dict:
         try:
-            timestamp = int(filter_dict['after'])
+            timestamp = int(filter_dict['after'][0])  # Assuming single after filter
             dt_after = datetime.utcfromtimestamp(timestamp)
             query = query.filter(Link.created_at > dt_after)
         except ValueError:
             flash('Invalid "after" timestamp. It must be a valid Unix timestamp.', 'error')
             abort(400)
 
-    # Filter by tag
-    if 'tag' in filter_dict:
-        tag_name = filter_dict['tag'].lower()
-        tag = Tag.query.filter_by(name=tag_name).first()
-        if tag:
-            query = query.filter(Link.tags.contains(tag))
-        else:
-            # No links have this tag
+    # Filter by tags
+    if 'tag' in filter_dict and filter_dict['tag']:
+        tag_names = [t.lower() for t in filter_dict['tag']]
+        tags = Tag.query.filter(Tag.name.in_(tag_names)).all()
+        if not tags:
+            # No links have these tags
             query = query.filter(False)  # No results
+        else:
+            # Filter links that have all the specified tags
+            for tag in tags:
+                query = query.filter(Link.tags.contains(tag))
+            # Alternatively, to filter links that have any of the specified tags, use:
+            # query = query.filter(Link.tags.any(Tag.name.in_(tag_names)))
 
     # Order the results (newest first)
     query = query.order_by(Link.created_at.desc())
