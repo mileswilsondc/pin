@@ -398,3 +398,14 @@ section {
         margin-right: 20px;
     }
 }
+
+.read-later {
+    color: #bb4411;
+}
+
+.private-tag {
+    background-color: #ddd;
+    border: 1px solid #d1d1d1;
+    padding-left: 1px;
+    padding-right: 1px;
+}

@@ -1,6 +1,6 @@
 {% macro link_item(link, show_user=True, current_user=None) %}
 <div class="bookmark">
-    <a class="bookmark-title" href="{{ link.url }}"
+    <a class="bookmark-title {% if link.read_later %}read-later{% endif %}" href="{{ link.url }}"
     {% if current_user.is_authenticated and current_user.open_links_in_new_window %}
     target="_blank" rel="noopener noreferrer"
     {% endif %}>
@@ -22,9 +22,11 @@
     {% endif %}
     {% for tag in tags %}
     {% if not tag.name.startswith('.') or (current_user and current_user.is_authenticated and link.user_id == current_user.id) %}
-    <a class="tag" href="{{ url_for('tag_links', tag_name=tag.name) }}">{{ tag.name }}</a>
-    {% endif %}
-    {% endfor %}
+    <a 
+    class="tag {% if tag.name.startswith('.') %}private-tag{% endif %}" 
+    href="{{ url_for('tag_links', tag_name=tag.name) }}">{{ tag.name }}</a>
+{% endif %}
+{% endfor %}
 </div>
 {% if current_user.is_authenticated and current_user.show_exact_datetime_on_bookmarks %}
 <span class="saved-on when">{{ link.created_at | format_datetime(current_user.timezone) }}</span>
