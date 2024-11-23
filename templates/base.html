@@ -15,7 +15,7 @@
             {% if current_user.is_authenticated %}
             <a href="{{ url_for('submit_link') }}">Add pin</a>
             <a href="{{ url_for('my_links') }}">My links</a>
-            <a href="{{ url_for('unread_links') }}">Read later</a>
+            <a href="{{ url_for('read_later_redirect') }}">Read later</a>
             <a href="{{ url_for('preferences') }}">Preferences</a>
             <a href="{{ url_for('profile') }}">Profile</a> <!-- New Profile Link -->
             {% if current_user.admin %}

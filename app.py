@@ -142,7 +142,6 @@ def apply_filters(query, filter_dict):
     """
     Apply filters from the filter_dict to the SQLAlchemy query.
     """
-    # Filter by user
     if 'u' in filter_dict:
         username = filter_dict['u'][0]  # Assuming single user filter
         user = User.query.filter_by(username=username).first()
@@ -192,6 +191,23 @@ def apply_filters(query, filter_dict):
                 query = query.filter(Link.tags.contains(tag))
             # Alternatively, to filter links that have any of the specified tags, use:
             # query = query.filter(Link.tags.any(Tag.name.in_(tag_names)))
+
+    # **New Filter: read_later**
+    if 'read_later' in filter_dict:
+        if not current_user.is_authenticated:
+            flash('You need to be logged in to filter by read_later.', 'error')
+            abort(403)
+        read_later_values = filter_dict['read_later']
+        for value in read_later_values:
+            if value.lower() in ['true', '1', 'yes']:
+                query = query.filter(Link.read_later == True)
+            elif value.lower() in ['false', '0', 'no']:
+                query = query.filter(Link.read_later == False)
+            else:
+                flash('Invalid value for "read_later" filter. Use true or false.', 'error')
+                abort(400)
+        # Ensure we only show the current user's read_later links
+        query = query.filter(Link.user_id == current_user.id)
 
     # Order the results (newest first)
     query = query.order_by(Link.created_at.desc())
@@ -321,9 +337,12 @@ def tag_links(tag_name):
 # Unread links
 @app.route('/read-later')
 @login_required
-def unread_links():
-    links = Link.query.filter_by(user_id=current_user.id, read_later=True).order_by(Link.id.desc()).all()
-    return render_template('unread_links.html', links=links)
+def read_later_redirect():
+    """
+    Redirect /read-later to the main index with read_later filter.
+    """
+    filters = 'read_later:true'
+    return redirect(url_for('index', filters=filters))
 
 # Edit a link
 @app.route('/edit/<int:link_id>', methods=['GET', 'POST'])
