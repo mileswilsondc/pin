@@ -60,6 +60,7 @@ footer {
 .form-textarea {
     resize: vertical;
     min-height: 100px;
+    width: 100%;
 }
 
 .checkbox-group {
@@ -340,4 +341,23 @@ section h2 {
         width: 28%;
         float: right;
     }
+}
+
+/* Hide extract on submit menu initially */
+.hidden {
+    visibility: hidden;
+    height: 0;
+    overflow: hidden;
+    margin-bottom: 0; /* Remove extra spacing when hidden */
+}
+
+.hidden * {
+    visibility: hidden; /* Ensure contents are hidden */
+}
+
+.toggle-link {
+    color: #007bff;
+    text-decoration: none;
+    cursor: pointer;
+    display: inline-block;
 }

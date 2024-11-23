@@ -56,17 +56,20 @@
     </div>
     
     <div class="form-group">
-        {{ form.extract.label(class="form-label") }}
-        {{ form.extract(class="form-textarea", placeholder="Enter the extract") }}
-        {% if form.extract.errors %}
-        <ul class="errors">
-            {% for error in form.extract.errors %}
-            <li>{{ error }}</li>
-            {% endfor %}
-        </ul>
-        {% endif %}
+        <a href="#" id="toggle-extract" class="toggle-link">Show Extract</a>
+        <div id="extract-section" class="hidden">
+            {{ form.extract.label(class="form-label") }}
+            {{ form.extract(class="form-textarea", placeholder="Enter the extract") }}
+            {% if form.extract.errors %}
+            <ul class="errors">
+                {% for error in form.extract.errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
     </div>
-    
+
     <div class="form-group"> 
         <div class="form-checkbox">
             {{ form.private() }}
@@ -88,4 +91,22 @@
         {{ form.submit(class="form-button") }}
     </div>
 </form>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const toggleLink = document.getElementById("toggle-extract");
+        const extractSection = document.getElementById("extract-section");
+    
+        toggleLink.addEventListener("click", function (event) {
+            event.preventDefault(); // Prevent navigation
+            if (extractSection.classList.contains("hidden")) {
+                extractSection.classList.remove("hidden");
+                toggleLink.textContent = "Hide Extract";
+            } else {
+                extractSection.classList.add("hidden");
+                toggleLink.textContent = "Show Extract";
+            }
+        });
+    });
+    </script>
 {% endblock %}
