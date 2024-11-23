@@ -18,6 +18,7 @@
             <a href="{{ url_for('unread_links') }}">Read later</a>
             <a href="{{ url_for('faq') }}">FAQ</a>
             <a href="{{ url_for('preferences') }}">Preferences</a>
+            <a href="{{ url_for('profile') }}">Profile</a> <!-- New Profile Link -->
             {% if current_user.admin %}
             <a href="{{ url_for('admin_page') }}">Admin</a>
             {% endif %}

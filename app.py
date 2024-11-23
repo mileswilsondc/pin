@@ -8,7 +8,7 @@ from flask_login import (
     logout_user,
     current_user,
 )
-from models import db, User, Link, Tag
+from models import db, User, Link, Tag, link_tags
 from forms import RegistrationForm, LoginForm, LinkForm, EditLinkForm, PreferencesForm, AdminEditUserForm, AdminRegistrationForm
 from archive import archive_page
 import pytz
@@ -17,6 +17,7 @@ import time
 from functools import wraps
 from flask_wtf import CSRFProtect
 from urllib.parse import unquote
+from sqlalchemy import func, desc
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
@@ -439,6 +440,44 @@ app.jinja_env.filters['format_relative_time'] = format_relative_time
 @login_required
 def faq():
     return render_template('faq.html')
+
+@app.route('/profile')
+@login_required
+def profile():
+    user = current_user
+
+    total_bookmarks = user.links.count()
+    public_bookmarks = user.links.filter_by(private=False).count()
+    private_bookmarks = user.links.filter_by(private=True).count()
+    unread_bookmarks = user.links.filter_by(read_later=True).count()
+
+    # Number of unique tags
+    number_of_tags = (
+        db.session.query(func.count(func.distinct(Tag.id)))
+        .join(link_tags, Tag.id == link_tags.c.tag_id)
+        .join(Link, Link.id == link_tags.c.link_id)
+        .filter(Link.user_id == user.id)
+        .scalar()
+    )
+
+
+    oldest_bookmark = user.links.order_by(Link.created_at.asc()).first()
+    oldest_bookmark_date = oldest_bookmark.created_at if oldest_bookmark else None
+
+    newest_bookmark = user.links.order_by(Link.created_at.desc()).first()
+    newest_bookmark_date = newest_bookmark.created_at if newest_bookmark else None
+
+    return render_template(
+        'profile.html',
+        user=user,
+        total_bookmarks=total_bookmarks,
+        public_bookmarks=public_bookmarks,
+        private_bookmarks=private_bookmarks,
+        unread_bookmarks=unread_bookmarks,
+        number_of_tags=number_of_tags,
+        oldest_bookmark_date=oldest_bookmark_date,
+        newest_bookmark_date=newest_bookmark_date
+    )
 
 @app.before_request
 def start_timer():

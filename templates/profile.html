@@ -1,0 +1,33 @@
+<!-- templates/profile.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="profile-container">
+    <h1>{{ user.username }} {% if user.admin %}(Admin){% endif %}</h1>
+    
+    <div class="profile-stats">
+        <h2>Statistics</h2>
+        <ul>
+            <li><strong>Total Bookmarks:</strong> {{ total_bookmarks }}</li>
+            <li><strong>Public Bookmarks:</strong> {{ public_bookmarks }}</li>
+            <li><strong>Private Bookmarks:</strong> {{ private_bookmarks }}</li>
+            <li><strong>Unread Bookmarks:</strong> {{ unread_bookmarks }}</li>
+            <li><strong>Number of Tags:</strong> {{ number_of_tags if number_of_tags else 0 }}</li>
+            <li><strong>Oldest Bookmark Added:</strong>
+                {% if oldest_bookmark_date %}
+                    {{ oldest_bookmark_date | format_datetime(user.timezone) }}
+                {% else %}
+                    N/A
+                {% endif %}
+            </li>
+            <li><strong>Newest Bookmark Added:</strong>
+                {% if newest_bookmark_date %}
+                    {{ newest_bookmark_date | format_datetime(user.timezone) }}
+                {% else %}
+                    N/A
+                {% endif %}
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
