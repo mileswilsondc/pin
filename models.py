@@ -14,6 +14,8 @@ link_tags = db.Table('link_tags',
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=True)  # Added email field
+    full_name = db.Column(db.String(120), nullable=True)  # Added full_name field
     password_hash = db.Column(db.String(128))
     admin = db.Column(db.Boolean, default=False)
     links = db.relationship('Link', backref='user', lazy='dynamic')

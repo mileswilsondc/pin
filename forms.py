@@ -1,7 +1,7 @@
 # forms.py
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, TextAreaField, BooleanField, SubmitField, SelectField, HiddenField, FileField
-from wtforms.validators import DataRequired, URL, EqualTo, ValidationError, Optional
+from wtforms.validators import DataRequired, URL, EqualTo, ValidationError, Optional, Email, Length
 from flask_wtf.file import FileAllowed
 from models import User
 
@@ -113,6 +113,10 @@ class PreferencesForm(FlaskForm):
     ])
     confirm_new_password = PasswordField('Confirm New Password', validators=[Optional()])
     
+    # New Fields: Email and Full Name
+    email = StringField('Email', validators=[Optional(), Email()])
+    full_name = StringField('Full Name', validators=[Optional(), Length(max=120)])
+    
     language = SelectField('Language', choices=[
         ('en', 'English'),
         ('es', 'Spanish / Español'),
@@ -168,6 +172,8 @@ class PreferencesForm(FlaskForm):
             self.add_bookmarks_private_by_default.data = user.add_bookmarks_private_by_default
             self.enable_public_profile.data = user.enable_public_profile
             self.enable_privacy_mode.data = user.enable_privacy_mode
+            self.email.data = user.email
+            self.full_name.data = user.full_name
 
     def validate_current_password(self, field):
         # Only validate if new_password is provided
@@ -179,6 +185,8 @@ class PreferencesForm(FlaskForm):
 
 class AdminRegistrationForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
+    email = StringField('Email', validators=[Optional(), Email()])  # Optional email during admin registration
+    full_name = StringField('Full Name', validators=[Optional(), Length(max=120)])  # Optional full name
     password = PasswordField('Password', validators=[DataRequired()])
     confirm_password = PasswordField('Confirm Password', validators=[
         DataRequired(),
@@ -192,6 +200,12 @@ class AdminRegistrationForm(FlaskForm):
         if user:
             raise ValidationError('Username already exists. Please choose a different one.')
 
+    def validate_email(self, email):
+        if email.data:
+            user = User.query.filter_by(email=email.data).first()
+            if user:
+                raise ValidationError('Email already in use. Please choose a different one.')
+
 class AdminEditUserForm(FlaskForm):
     user_id = HiddenField('User ID')
 
@@ -200,6 +214,10 @@ class AdminEditUserForm(FlaskForm):
         EqualTo('confirm_new_password', message='Passwords must match.')
     ])
     confirm_new_password = PasswordField('Confirm New Password', validators=[Optional()])
+
+    # New Fields: Email and Full Name
+    email = StringField('Email', validators=[Optional(), Email()])
+    full_name = StringField('Full Name', validators=[Optional(), Length(max=120)])
 
     language = SelectField('Language', choices=[
         ('en', 'English'),
@@ -256,8 +274,16 @@ class AdminEditUserForm(FlaskForm):
             self.add_bookmarks_private_by_default.data = user.add_bookmarks_private_by_default
             self.enable_public_profile.data = user.enable_public_profile
             self.enable_privacy_mode.data = user.enable_privacy_mode
+            self.email.data = user.email
+            self.full_name.data = user.full_name
 
     def validate_new_password(self, field):
         if field.data:
             if len(field.data) < 6:
                 raise ValidationError('Password must be at least 6 characters long.')
+
+    def validate_email(self, field):
+        if field.data and field.data != self.user.email:
+            user = User.query.filter_by(email=field.data).first()
+            if user:
+                raise ValidationError('Email already in use. Please choose a different one.')

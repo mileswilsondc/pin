@@ -45,6 +45,30 @@
         </div>
         
         <div class="form-group">
+            {{ registration_form.email.label(class="form-label") }}
+            {{ registration_form.email(class="form-input", placeholder="Enter email") }}
+            {% if registration_form.email.errors %}
+            <ul class="errors">
+                {% for error in registration_form.email.errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            {{ registration_form.full_name.label(class="form-label") }}
+            {{ registration_form.full_name(class="form-input", placeholder="Enter full name") }}
+            {% if registration_form.full_name.errors %}
+            <ul class="errors">
+                {% for error in registration_form.full_name.errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
             {{ registration_form.password.label(class="form-label") }}
             {{ registration_form.password(class="form-input", placeholder="Enter password") }}
             {% if registration_form.password.errors %}
@@ -119,6 +143,34 @@
                 </div>
             </fieldset>
             
+            <!-- Personal Information Fields -->
+            <fieldset>
+                <legend>Personal Information</legend>
+                <div class="form-group">
+                    {{ edit_forms[user.id].full_name.label(class="form-label") }}
+                    {{ edit_forms[user.id].full_name(class="form-input", placeholder="Enter full name") }}
+                    {% if edit_forms[user.id].full_name.errors %}
+                    <ul class="errors">
+                        {% for error in edit_forms[user.id].full_name.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    {{ edit_forms[user.id].email.label(class="form-label") }}
+                    {{ edit_forms[user.id].email(class="form-input", placeholder="Enter email") }}
+                    {% if edit_forms[user.id].email.errors %}
+                    <ul class="errors">
+                        {% for error in edit_forms[user.id].email.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+            </fieldset>
+
             <!-- Preferences Fields -->
             <fieldset>
                 <legend>Preferences</legend>
@@ -240,6 +292,8 @@
                     <tr>
                         <th>UID</th>
                         <th>Username</th>
+                        <th>Full Name</th>
+                        <th>Email</th>
                         <th>Admin</th>
                     </tr>
                 </thead>
@@ -248,6 +302,8 @@
                     <tr>
                         <td>{{ user.id }}</td>
                         <td>{{ user.username }}</td>
+                        <td>{{ user.full_name or 'N/A' }}</td>
+                        <td>{{ user.email or 'N/A' }}</td>
                         <td>{{ 'Yes' if user.admin else 'No' }}</td>
                     </tr>
                     {% endfor %}

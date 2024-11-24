@@ -623,6 +623,17 @@ def preferences():
         current_user.enable_public_profile = form.enable_public_profile.data
         current_user.enable_privacy_mode = form.enable_privacy_mode.data
 
+        email = form.email.data
+        full_name = form.full_name.data
+
+        if email != current_user.email:
+            if email and User.query.filter_by(email=email).first():
+                flash('Email already in use. Please choose a different one.', 'error')
+                return render_template('preferences.html', form=form)
+            current_user.email = email
+
+        current_user.full_name = full_name
+
         db.session.commit()
         flash('Your preferences have been updated.', 'success')
         return redirect(url_for('index'))
@@ -644,6 +655,8 @@ def admin_page():
             if registration_form.validate_on_submit():
                 new_user = User(
                     username=registration_form.username.data,
+                    email=registration_form.email.data,  # Set email if provided
+                    full_name=registration_form.full_name.data,  # Set full name if provided
                     admin=registration_form.admin.data,
                     language='en',  # Default preferences; adjust as needed
                     timezone='Etc/UTC'
@@ -666,6 +679,15 @@ def admin_page():
                     if form.new_password.data:
                         user.set_password(form.new_password.data)
                         flash(f'Password updated for user "{user.username}".', 'success')
+
+                    # Update email and full_name
+                    if form.email.data != user.email:
+                        if form.email.data and User.query.filter_by(email=form.email.data).first():
+                            flash(f'Email "{form.email.data}" is already in use.', 'error')
+                            return redirect(url_for('admin_page'))
+                        user.email = form.email.data
+
+                    user.full_name = form.full_name.data
 
                     # Update preferences
                     user.language = form.language.data

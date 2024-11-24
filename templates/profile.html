@@ -3,8 +3,17 @@
 
 {% block content %}
 <div class="profile-container">
-    <h1>{{ user.username }} {% if user.admin %}(Admin){% endif %}</h1>
-    
+    {% if user.full_name %}
+    <h1>{{ user.full_name }}  {% if user.admin %}(Admin){% endif %}</h1>
+    <b>{{ user.username }}</b>
+    {% else %}
+    <h1>{{ user.username }}  {% if user.admin %}(Admin){% endif %}</h1>
+    {% endif %}
+    <div class="user-info">
+        {% if user.email %}
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        {% endif %}
+    </div>
     <div class="profile-stats">
         <h2>Bookmarks</h2>
         <p>You have {{ total_bookmarks }} bookmarks; {{ public_bookmarks }} public, {{ private_bookmarks }} private, and {{ unread_bookmarks }} unread.</p>
