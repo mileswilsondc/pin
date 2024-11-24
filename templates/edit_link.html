@@ -33,7 +33,7 @@
     
     <div class="form-group">
         {{ form.tags.label(class="form-label") }}
-        {{ form.tags(class="form-input", placeholder="Enter tags separated by spaces") }}
+        {{ form.tags(class="form-input", id="tags-input", placeholder="Enter tags separated by commas") }}
         {% if form.tags.errors %}
         <ul class="errors">
             {% for error in form.tags.errors %}
@@ -69,4 +69,42 @@
         {{ form.submit(class="form-button") }}
     </div>
 </form>
+
+    <!-- Tagify CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css">
+    
+    <!-- Tagify JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+        var input = document.getElementById('tags-input');
+        var tagify = new Tagify(input, {
+            delimiters: ", ", // Use comma and space as delimiters
+            originalInputValueFormat: valuesArr => valuesArr.map(v => v.value).join(', '), // Serialize as comma-separated string
+            whitelist: [],
+            dropdown: {
+                enabled: 0, // Show suggestions on focus
+                maxItems: 20,
+                classname: "tags-look",
+                position: "all",
+                highlightFirst: true
+            }
+        });
+        
+        tagify.on('input', onInput);
+
+        function onInput(e) {
+            var value = e.detail.value;
+            fetch('/tags/autocomplete?q=' + encodeURIComponent(value))
+                .then(response => response.json())
+                .then(function(whitelist) {
+                    tagify.settings.whitelist = whitelist;
+                    tagify.dropdown.show.call(tagify, value); // Show the suggestions dropdown
+                })
+                .catch(function(err){
+                    console.error('Error fetching tag suggestions:', err);
+                });
+        }
+    });
+    </script>
 {% endblock %}

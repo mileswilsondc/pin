@@ -435,6 +435,15 @@ def logout():
 def dmca():
     return render_template('dmca.html')
 
+def parse_tag_input(tag_input):
+    """
+    Parse the tag input string into a list of clean, lowercase tag names.
+    """
+    if not tag_input:
+        return []
+    # Split by comma, strip whitespace, and convert to lowercase
+    return [tag.strip().lower() for tag in tag_input.split(',') if tag.strip()]
+
 # Submit a new link
 @app.route('/submit', methods=['GET', 'POST'])
 @login_required
@@ -479,11 +488,9 @@ def submit_link():
         db.session.flush()  # Flush to assign an ID to the link
 
         # Process tags
-        tag_names = form.tags.data.split()
+        tag_input = form.tags.data
+        tag_names = parse_tag_input(tag_input)
         for name in tag_names:
-            name = name.strip().lower()  # Normalize tag names
-            if not name:
-                continue  # Skip empty tags
             tag = Tag.query.filter_by(name=name).first()
             if not tag:
                 tag = Tag(name=name)
@@ -530,14 +537,12 @@ def edit_link(link_id):
 
         # Handle tags
         link.tags.clear()
-        tag_list = form.tags.data.split()
-        for tag_name in tag_list:
-            tag_name = tag_name.strip().lower()
-            if not tag_name:
-                continue
-            tag = Tag.query.filter_by(name=tag_name).first()
+        tag_input = form.tags.data
+        tag_names = parse_tag_input(tag_input)
+        for name in tag_names:
+            tag = Tag.query.filter_by(name=name).first()
             if not tag:
-                tag = Tag(name=tag_name)
+                tag = Tag(name=name)
                 db.session.add(tag)
             link.tags.append(tag)
 
@@ -545,7 +550,7 @@ def edit_link(link_id):
         flash('Link updated successfully.')
         return redirect(url_for('my_links'))
     else:
-        form.tags.data = ' '.join([tag.name for tag in link.tags])
+        form.tags.data = ', '.join([tag.name for tag in link.tags])
         form.extract.data = link.extract
     return render_template('edit_link.html', form=form, link=link)
 
@@ -979,6 +984,22 @@ def export_bookmarks():
         download_name='bookmarks_export.json',
         mimetype='application/json'
     )
+
+@app.route('/tags/autocomplete')
+@login_required
+def autocomplete_tags():
+    query = request.args.get('q', '').strip().lower()
+    if not query:
+        return jsonify([])
+    
+    # Order by number of associated links (frequency)
+    tags = Tag.query.filter(Tag.name.ilike(f'{query}%')) \
+                    .outerjoin(link_tags) \
+                    .group_by(Tag.id) \
+                    .order_by(func.count(link_tags.c.link_id).desc()) \
+                    .limit(10).all()
+    tag_names = [tag.name for tag in tags]
+    return jsonify(tag_names)
 
 @app.before_request
 def start_timer():
