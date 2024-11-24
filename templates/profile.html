@@ -6,34 +6,42 @@
     <h1>{{ user.username }} {% if user.admin %}(Admin){% endif %}</h1>
     
     <div class="profile-stats">
-        <h2>Statistics</h2>
-        <ul>
+        <h2>Bookmarks</h2>
+        <p>You have {{ total_bookmarks }} bookmarks; {{ public_bookmarks }} public, {{ private_bookmarks }} private, and {{ unread_bookmarks }} unread.</p>
+        <h2>Tags</h2>
+        <p>You have {{ number_of_tags }} tags.</p>
+        <!--<ul>
             <li><strong>Total Bookmarks:</strong> {{ total_bookmarks }}</li>
             <li><strong>Public Bookmarks:</strong> {{ public_bookmarks }}</li>
             <li><strong>Private Bookmarks:</strong> {{ private_bookmarks }}</li>
             <li><strong>Unread Bookmarks:</strong> {{ unread_bookmarks }}</li>
-            <li><strong>Number of Tags:</strong> {{ number_of_tags if number_of_tags else 0 }}</li>
+            <li><strong>Number of Tags:</strong> {{ number_of_tags }}</li>
             <li><strong>Oldest Bookmark Added:</strong>
-                {% if oldest_bookmark_date %}
-                    {{ oldest_bookmark_date | format_datetime(user.timezone) }}
-                {% else %}
-                    N/A
-                {% endif %}
+                {{ oldest_bookmark_date | format_datetime(user.timezone) if oldest_bookmark_date else 'N/A' }}
             </li>
             <li><strong>Newest Bookmark Added:</strong>
-                {% if newest_bookmark_date %}
-                    {{ newest_bookmark_date | format_datetime(user.timezone) }}
-                {% else %}
-                    N/A
-                {% endif %}
+                {{ newest_bookmark_date | format_datetime(user.timezone) if newest_bookmark_date else 'N/A' }}
             </li>
-        </ul>
+        </ul>-->
     </div>
-
+    
     <div class="import-section">
         <h2>Import Bookmarks</h2>
-        <p>You can import your Browser bookmarks by uploading a JSON file.</p>
-        <a href="{{ url_for('import_bookmarks') }}" class="form-button">Import Bookmarks</a>
+        <form method="post" enctype="multipart/form-data" class="form">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                {{ form.json_file.label(class="form-label") }}
+                {{ form.json_file(class="form-input") }}
+                {% if form.json_file.errors %}
+                <ul class="errors">
+                    {% for error in form.json_file.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                {{ form.submit(class="form-button", style="padding:0;width: 70px;") }}
+            </div>
+        </form>
     </div>
     
     <div class="export-section">

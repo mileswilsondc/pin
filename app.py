@@ -731,17 +731,16 @@ app.jinja_env.filters['format_relative_time'] = format_relative_time
 def faq():
     return render_template('faq.html')
 
-@app.route('/profile')
+@app.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
     user = current_user
 
+    # Statistics for the profile
     total_bookmarks = user.links.count()
     public_bookmarks = user.links.filter_by(private=False).count()
     private_bookmarks = user.links.filter_by(private=True).count()
     unread_bookmarks = user.links.filter_by(read_later=True).count()
-
-    # Number of unique tags
     number_of_tags = (
         db.session.query(func.count(func.distinct(Tag.id)))
         .join(link_tags, Tag.id == link_tags.c.tag_id)
@@ -749,13 +748,61 @@ def profile():
         .filter(Link.user_id == user.id)
         .scalar()
     )
-
-
     oldest_bookmark = user.links.order_by(Link.created_at.asc()).first()
-    oldest_bookmark_date = oldest_bookmark.created_at if oldest_bookmark else None
-
     newest_bookmark = user.links.order_by(Link.created_at.desc()).first()
+    oldest_bookmark_date = oldest_bookmark.created_at if oldest_bookmark else None
     newest_bookmark_date = newest_bookmark.created_at if newest_bookmark else None
+
+    form = ImportForm()
+    if form.validate_on_submit():
+        file = form.json_file.data
+        try:
+            data = json.load(file)
+        except json.JSONDecodeError:
+            flash('Invalid JSON file. Please upload a valid Firefox bookmarks JSON file.', 'error')
+        else:
+            import_count = 0
+            base_timestamp = datetime.utcnow()
+
+            def process_bookmarks(bookmarks):
+                nonlocal import_count, base_timestamp
+                for item in bookmarks:
+                    if item.get('type') == 'text/x-moz-place':
+                        uri = item.get('uri')
+                        title = item.get('title')
+                        tags = item.get('tags', [])
+
+                        if not uri or not title:
+                            continue
+
+                        link = Link(
+                            url=uri,
+                            title=title,
+                            user_id=user.id,
+                            private=False,
+                            created_at=base_timestamp + timedelta(seconds=import_count),
+                            updated_at=base_timestamp + timedelta(seconds=import_count),
+                        )
+                        db.session.add(link)
+                        db.session.flush()
+
+                        if isinstance(tags, str):
+                            tags = [tag.strip() for tag in tags.replace(',', ' ').split()]
+                        for tag_name in tags:
+                            tag = Tag.query.filter_by(name=tag_name).first()
+                            if not tag:
+                                tag = Tag(name=tag_name)
+                                db.session.add(tag)
+                            link.tags.append(tag)
+
+                        import_count += 1
+                    elif 'children' in item:
+                        process_bookmarks(item['children'])
+
+            process_bookmarks(data.get('children', []))
+            db.session.commit()
+            flash(f'Successfully imported {import_count} bookmarks.', 'success')
+            return redirect(url_for('profile'))
 
     return render_template(
         'profile.html',
@@ -764,9 +811,10 @@ def profile():
         public_bookmarks=public_bookmarks,
         private_bookmarks=private_bookmarks,
         unread_bookmarks=unread_bookmarks,
-        number_of_tags=number_of_tags,
+        number_of_tags=number_of_tags if number_of_tags else 0,
         oldest_bookmark_date=oldest_bookmark_date,
-        newest_bookmark_date=newest_bookmark_date
+        newest_bookmark_date=newest_bookmark_date,
+        form=form,
     )
 
 @app.route('/read_redirect/<int:link_id>')

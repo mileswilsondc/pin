@@ -36,7 +36,7 @@ class EditLinkForm(FlaskForm):
     submit = SubmitField('Update')
 
 class ImportForm(FlaskForm):
-    json_file = FileField('Firefox Bookmarks JSON File', validators=[
+    json_file = FileField('Bookmarks JSON File', validators=[
         DataRequired(message="Please upload a JSON file."),
         FileAllowed(['json'], 'Only JSON files are allowed!')
     ])
