@@ -1,7 +1,8 @@
 # forms.py
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, TextAreaField, BooleanField, SubmitField, SelectField, HiddenField
+from wtforms import StringField, PasswordField, TextAreaField, BooleanField, SubmitField, SelectField, HiddenField, FileField
 from wtforms.validators import DataRequired, URL, EqualTo, ValidationError, Optional
+from flask_wtf.file import FileAllowed
 from models import User
 
 class RegistrationForm(FlaskForm):
@@ -33,6 +34,13 @@ class EditLinkForm(FlaskForm):
     private = BooleanField('Private')
     read_later = BooleanField('Read Later')
     submit = SubmitField('Update')
+
+class ImportForm(FlaskForm):
+    json_file = FileField('Firefox Bookmarks JSON File', validators=[
+        DataRequired(message="Please upload a JSON file."),
+        FileAllowed(['json'], 'Only JSON files are allowed!')
+    ])
+    submit = SubmitField('Import')
 
 timezone_choices = [
         ('Etc/UTC', 'UTC (default)'),

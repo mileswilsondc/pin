@@ -1,5 +1,5 @@
 # app.py (Modified index route with cursor-based pagination)
-from flask import Flask, render_template, redirect, url_for, request, flash, abort, g, jsonify
+from flask import Flask, render_template, redirect, url_for, request, flash, abort, g, jsonify, send_file, make_response
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import (
     LoginManager,
@@ -11,12 +11,15 @@ from flask_login import (
 from models import db, User, Link, Tag, link_tags
 from forms import (
     RegistrationForm, LoginForm, LinkForm, EditLinkForm,
-    PreferencesForm, AdminEditUserForm, AdminRegistrationForm
+    PreferencesForm, AdminEditUserForm, AdminRegistrationForm,
+    ImportForm
 )
 from archive import archive_page
 import pytz
 from datetime import datetime
 import time
+import json
+import io
 from functools import wraps
 from flask_wtf import CSRFProtect
 from urllib.parse import unquote
@@ -780,6 +783,128 @@ def read_redirect(link_id):
         flash(f"Marked '{link.title}' as read.", "success")
     
     return redirect(link.url)
+
+@app.route('/import', methods=['GET', 'POST'])
+@login_required
+def import_bookmarks():
+    form = ImportForm()
+    if form.validate_on_submit():
+        file = form.json_file.data
+        try:
+            # Attempt to load the JSON data
+            data = json.load(file)
+        except json.JSONDecodeError:
+            flash('Invalid JSON file. Please upload a valid Firefox bookmarks JSON file.', 'error')
+            return redirect(url_for('import_bookmarks'))
+        except Exception as e:
+            flash(f'An error occurred while reading the file: {e}', 'error')
+            return redirect(url_for('import_bookmarks'))
+        
+        # Initialize a counter for imported bookmarks
+        import_count = 0
+
+        def process_bookmarks(bookmarks):
+            nonlocal import_count
+            for item in bookmarks:
+                if item.get('type') == 'text/x-moz-place':
+                    uri = item.get('uri')
+                    title = item.get('title')
+                    tags = item.get('tags', [])  # Fetch tags if present
+
+                    if not uri or not title:
+                        continue  # Skip entries without URI or title
+
+                    # Create a new Link instance
+                    link = Link(
+                        url=uri,
+                        title=title,
+                        user_id=current_user.id,
+                        private=False,  # Default to public; modify if needed
+                        read_later=False
+                    )
+                    db.session.add(link)
+                    db.session.flush()  # Assign an ID to the link
+
+                    # Handle tags appropriately
+                    if isinstance(tags, str):
+                        # Split tags by comma or space if multiple tags are in a single string
+                        # Adjust the delimiter based on how tags are stored in your JSON
+                        tags = [tag.strip() for tag in tags.replace(',', ' ').split()]
+                    elif isinstance(tags, list):
+                        tags = [tag.strip() for tag in tags]
+                    else:
+                        tags = []  # If tags are neither string nor list, ignore
+
+                    for tag_name in tags:
+                        if not tag_name:
+                            continue  # Skip empty tag names
+                        tag = Tag.query.filter_by(name=tag_name).first()
+                        if not tag:
+                            tag = Tag(name=tag_name)
+                            db.session.add(tag)
+                        link.tags.append(tag)
+                    
+                    import_count += 1
+                elif 'children' in item:
+                    # Recursively process nested bookmarks/folders
+                    process_bookmarks(item['children'])
+
+        try:
+            # Start processing from the root's children
+            root_children = data.get('children', [])
+            process_bookmarks(root_children)
+            db.session.commit()
+            flash(f'Successfully imported {import_count} bookmarks.', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'An error occurred during import: {e}', 'error')
+            return redirect(url_for('import_bookmarks'))
+        
+        return redirect(url_for('profile'))
+    
+    return render_template('import.html', form=form)
+
+@app.route('/export')
+@login_required
+def export_bookmarks():
+    """
+    Export the current user's bookmarks to a JSON file.
+    The JSON structure matches the expected format for import.
+    """
+    # Query all bookmarks belonging to the current user
+    links = Link.query.filter_by(user_id=current_user.id).all()
+    
+    # Create a list to hold bookmark dictionaries
+    bookmarks = []
+    for link in links:
+        bookmark = {
+            "type": "text/x-moz-place",  # Assuming Firefox-like structure
+            "uri": link.url,
+            "title": link.title,
+            "tags": [tag.name for tag in link.tags]
+        }
+        bookmarks.append(bookmark)
+    
+    # Define the root JSON structure
+    export_data = {
+        "children": bookmarks
+    }
+    
+    # Serialize the data to JSON
+    json_data = json.dumps(export_data, indent=4)
+    
+    # Create an in-memory buffer to hold the JSON data
+    buffer = io.BytesIO()
+    buffer.write(json_data.encode('utf-8'))
+    buffer.seek(0)  # Reset buffer position to the beginning
+    
+    # Send the buffer as a downloadable file
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name='bookmarks_export.json',
+        mimetype='application/json'
+    )
 
 @app.before_request
 def start_timer():

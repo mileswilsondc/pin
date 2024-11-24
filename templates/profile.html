@@ -29,5 +29,17 @@
             </li>
         </ul>
     </div>
+
+    <div class="import-section">
+        <h2>Import Bookmarks</h2>
+        <p>You can import your Browser bookmarks by uploading a JSON file.</p>
+        <a href="{{ url_for('import_bookmarks') }}" class="form-button">Import Bookmarks</a>
+    </div>
+    
+    <div class="export-section">
+        <h2>Export Bookmarks</h2>
+        <p>Download your bookmarks as a JSON file.</p>
+        <a href="{{ url_for('export_bookmarks') }}" class="form-button">Export Bookmarks</a>
+    </div>
 </div>
 {% endblock %}
