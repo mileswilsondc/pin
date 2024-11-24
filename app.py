@@ -343,33 +343,37 @@ def index(filters):
             for v in vals:
                 parts.append(f"{k}:{v}")
         return '/'.join(parts)
+    
+        base_query = apply_filters(base_query, filter_dict, exclude_keys=['paginate', 'paginate_after'])
 
-    # Generate URLs for additional filters
+    # Calculate counts for each filter category
+    public_count = base_query.filter_by(private=False).count()
+    private_count = base_query.filter_by(private=True).count()
+    unread_count = base_query.filter_by(read_later=True).count()
+    untagged_count = base_query.filter(~Link.tags.any()).count()
+
+    # Initialize filter_options with counts
     filter_options = []
 
-    if has_private:
-        # Show option to filter private links
+    if private_count > 0:
         new_filters = generate_filter_path(filter_dict, 'private', 'true')
         url_private = url_for('index', filters=new_filters, floor=floor)
-        filter_options.append(('private', url_private))
+        filter_options.append(('private', url_private, private_count))
 
-    if has_public:
-        # Show option to filter public links
+    if public_count > 0:
         new_filters = generate_filter_path(filter_dict, 'private', 'false')
         url_public = url_for('index', filters=new_filters, floor=floor)
-        filter_options.append(('public', url_public))
+        filter_options.append(('public', url_public, public_count))
 
-    if has_unread:
-        # Show option to filter unread links
+    if unread_count > 0:
         new_filters = generate_filter_path(filter_dict, 'read_later', 'true')
         url_unread = url_for('index', filters=new_filters, floor=floor)
-        filter_options.append(('unread', url_unread))
+        filter_options.append(('unread', url_unread, unread_count))
 
-    if has_untagged:
-        # Show option to filter untagged links
+    if untagged_count > 0:
         new_filters = generate_filter_path(filter_dict, 'untagged', 'true')
         url_untagged = url_for('index', filters=new_filters, floor=floor)
-        filter_options.append(('untagged', url_untagged))
+        filter_options.append(('untagged', url_untagged, untagged_count))
 
     return render_template(
         'filter_links.html',
@@ -379,7 +383,7 @@ def index(filters):
         username=username,              # Pass the username if a user filter is applied
         result_count=result_count,      # Pass the number of results
         floor=floor,                    # Pass the floor to the template
-        filter_options=filter_options,  # Pass additional filter options
+        filter_options=filter_options,  # Pass additional filter options with counts
         has_prev=has_prev,
         has_next=has_next,
         prev_url=prev_url,

@@ -24,8 +24,8 @@
     
     <!-- Line 2: Menu Filters -->
     <div class="menu-filters">
-        {% for name, url in filter_options %}
-        <a href="{{ url }}" class="menu-filter">{{ name.capitalize() }}</a>
+        {% for name, url, count in filter_options %}
+        <a href="{{ url }}" class="menu-filter">{{ count }} {{ name.capitalize() }}</a>
         {% endfor %}
     </div>
     
