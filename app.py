@@ -16,7 +16,7 @@ from forms import (
 )
 from archive import archive_page
 import pytz
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 import json
 import io
@@ -803,8 +803,11 @@ def import_bookmarks():
         # Initialize a counter for imported bookmarks
         import_count = 0
 
+        # Base timestamp: the current UTC time at the start of import
+        base_timestamp = datetime.utcnow()
+
         def process_bookmarks(bookmarks):
-            nonlocal import_count
+            nonlocal import_count, base_timestamp
             for item in bookmarks:
                 if item.get('type') == 'text/x-moz-place':
                     uri = item.get('uri')
@@ -814,13 +817,15 @@ def import_bookmarks():
                     if not uri or not title:
                         continue  # Skip entries without URI or title
 
-                    # Create a new Link instance
+                    # Create a new Link instance with a unique created_at timestamp
                     link = Link(
                         url=uri,
                         title=title,
                         user_id=current_user.id,
                         private=False,  # Default to public; modify if needed
-                        read_later=False
+                        read_later=False,
+                        created_at=base_timestamp + timedelta(seconds=import_count),  # Unique timestamp
+                        updated_at=base_timestamp + timedelta(seconds=import_count)   # Keep updated_at consistent
                     )
                     db.session.add(link)
                     db.session.flush()  # Assign an ID to the link
@@ -828,7 +833,6 @@ def import_bookmarks():
                     # Handle tags appropriately
                     if isinstance(tags, str):
                         # Split tags by comma or space if multiple tags are in a single string
-                        # Adjust the delimiter based on how tags are stored in your JSON
                         tags = [tag.strip() for tag in tags.replace(',', ' ').split()]
                     elif isinstance(tags, list):
                         tags = [tag.strip() for tag in tags]
