@@ -69,34 +69,24 @@
             {# Tag already in filters; optionally highlight or disable the link #}
             <span style="font-size: {{ tag.size }}px;" class="tag-cloud-link active-tag">{{ tag.name }}</span>
             {% else %}
-            {% if filters %}
-            {% set new_filters = '' %}
-            {% for key, value in filters.items() %}
-            {% if key == 'tag' %}
-            {% for t in value %}
-            {% set new_filters = new_filters + 'tag:' + t + '/' %}
-            {% endfor %}
+            {% if filters_str %}
+                {% set new_filters = filters_str + '/tag:' + tag.name %}
             {% else %}
-            {% set new_filters = new_filters + key + ':' + value[0] + '/' %}
+                {% set new_filters = 'tag:' + tag.name %}
             {% endif %}
-            {% endfor %}
-            {% set new_filters = new_filters + 'tag:' + tag.name %}
-            {% else %}
-            {% set new_filters = 'tag:' + tag.name %}
-            {% endif %}
-            <a href="{{ url_for('index', filters=new_filters) }}"
-            style="font-size: {{ tag.size }}px;"
-            class="tag-cloud-link">{{ tag.name }}</a>
+            <a href="{{ url_for('index', filters=new_filters, floor=floor) }}"
+               style="font-size: {{ tag.size }}px;"
+               class="tag-cloud-link">{{ tag.name }}</a>
             {% endif %}
             {% endfor %}
         </div>
         <div class="floor-filters">
             Tag cloud floor:
-            <a href="{{ url_for('index', filters=filters | join('/'), floor=1) }}">All Tags</a>
-            ‧ <a href="{{ url_for('index', filters=filters | join('/'), floor=2) }}">2</a>
-            ‧ <a href="{{ url_for('index', filters=filters | join('/'), floor=5) }}">5</a>
-            ‧ <a href="{{ url_for('index', filters=filters | join('/'), floor=10) }}">10</a>
-            ‧ <a href="{{ url_for('index', filters=filters | join('/'), floor=20) }}">20</a>
+            <a href="{{ url_for('index', filters=filters_str, floor=1) }}">All Tags</a>
+            ‧ <a href="{{ url_for('index', filters=filters_str, floor=2) }}">2</a>
+            ‧ <a href="{{ url_for('index', filters=filters_str, floor=5) }}">5</a>
+            ‧ <a href="{{ url_for('index', filters=filters_str, floor=10) }}">10</a>
+            ‧ <a href="{{ url_for('index', filters=filters_str, floor=20) }}">20</a>
         </div>
         {% endif %}
     </div>
