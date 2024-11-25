@@ -338,16 +338,24 @@ def index(filters):
     has_untagged = any(len(link.tags) == 0 for link in total_links)
 
     # Helper function to generate updated filter path for additional filters
-    def generate_filter_path(current_filters, key, value):
-        new_filter_dict = defaultdict(list, current_filters)
-        new_filter_dict[key] = [value]  # Overwrite existing filter for key
+    def generate_filter_path(filters, key, value):
+        """
+        Generate a new filter path with an updated 'key' filter.
+        Preserves existing filters.
+        """
+        new_filter_dict = defaultdict(list, filters)
+        new_filter_dict[key] = [str(value)]
+        # Remove opposite pagination filter to avoid conflicts
+        if key == 'paginate':
+            new_filter_dict.pop('paginate_after', None)
+        elif key == 'paginate_after':
+            new_filter_dict.pop('paginate', None)
         parts = []
         for k, vals in new_filter_dict.items():
             for v in vals:
                 parts.append(f"{k}:{v}")
-        return '/'.join(parts)
-    
-        base_query = apply_filters(base_query, filter_dict, exclude_keys=['paginate', 'paginate_after'])
+        new_filters = '/'.join(parts)
+        return new_filters
 
     # Calculate counts for each filter category
     public_count = base_query.filter_by(private=False).count()
@@ -358,24 +366,25 @@ def index(filters):
     # Initialize filter_options with counts
     filter_options = []
 
-    if private_count > 0:
-        new_filters = generate_filter_path(filter_dict, 'private', 'true')
-        url_private = url_for('index', filters=new_filters, floor=floor)
-        filter_options.append(('private', url_private, private_count))
-
-    if public_count > 0:
-        new_filters = generate_filter_path(filter_dict, 'private', 'false')
-        url_public = url_for('index', filters=new_filters, floor=floor)
+    if private_count > 0 and public_count > 0:
+        # Generate URL for 'public' filter
+        new_filters_public = generate_filter_path(filter_dict, 'private', 'false')
+        url_public = url_for('index', filters=new_filters_public, floor=request.args.get('floor', 1))
         filter_options.append(('public', url_public, public_count))
 
+        # Generate URL for 'private' filter
+        new_filters_private = generate_filter_path(filter_dict, 'private', 'true')
+        url_private = url_for('index', filters=new_filters_private, floor=request.args.get('floor', 1))
+        filter_options.append(('private', url_private, private_count))
+    
     if unread_count > 0:
-        new_filters = generate_filter_path(filter_dict, 'read_later', 'true')
-        url_unread = url_for('index', filters=new_filters, floor=floor)
+        new_filters_unread = generate_filter_path(filter_dict, 'read_later', 'true')
+        url_unread = url_for('index', filters=new_filters_unread, floor=request.args.get('floor', 1))
         filter_options.append(('unread', url_unread, unread_count))
-
+    
     if untagged_count > 0:
-        new_filters = generate_filter_path(filter_dict, 'untagged', 'true')
-        url_untagged = url_for('index', filters=new_filters, floor=floor)
+        new_filters_untagged = generate_filter_path(filter_dict, 'untagged', 'true')
+        url_untagged = url_for('index', filters=new_filters_untagged, floor=request.args.get('floor', 1))
         filter_options.append(('untagged', url_untagged, untagged_count))
 
     return render_template(
