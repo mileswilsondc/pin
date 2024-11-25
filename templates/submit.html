@@ -82,11 +82,6 @@
         </div>
     </div>
     
-    <!--<div class="form-checkbox">
-        {{ form.archive() }}
-        {{ form.archive.label(class="form-label") }}
-    </div>-->
-    
     <div class="form-group">
         {{ form.submit(class="form-button") }}
     </div>
@@ -108,21 +103,28 @@
             }
         });
     });
-    </script>
-    <!-- Tagify CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css">
-    
-    <!-- Tagify JS -->
-    <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
+</script>
+
+{% if current_user.tag_autocompletion %}
+<!-- Tagify CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css">
+
+<!-- Tagify JS -->
+<script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
         var input = document.getElementById('tags-input');
+        
+        // Inject user preferences into JavaScript
+        var tag_autocompletion_enabled = {{ 'true' if current_user.tag_autocompletion else 'false' }};
+        var use_return_key = {{ 'true' if current_user.use_return_key_for_autocomplete else 'false' }};
+        
         var tagify = new Tagify(input, {
             delimiters: ", ", // Use comma and space as delimiters
             originalInputValueFormat: valuesArr => valuesArr.map(v => v.value).join(', '), // Serialize as comma-separated string
             whitelist: [],
             dropdown: {
-                enabled: 0, // Show suggestions on focus
+                enabled: tag_autocompletion_enabled ? 1 : 0, // Enable or disable autocomplete
                 maxItems: 20,
                 classname: "tags-look",
                 position: "all",
@@ -131,19 +133,31 @@
         });
         
         tagify.on('input', onInput);
-
+        
         function onInput(e) {
             var value = e.detail.value;
             fetch('/tags/autocomplete?q=' + encodeURIComponent(value))
                 .then(response => response.json())
                 .then(function(whitelist) {
                     tagify.settings.whitelist = whitelist;
-                    tagify.dropdown.show.call(tagify, value); // Show the suggestions dropdown
+                    if(tag_autocompletion_enabled){
+                        tagify.dropdown.show.call(tagify, value); // Show the suggestions dropdown
+                    }
                 })
                 .catch(function(err){
                     console.error('Error fetching tag suggestions:', err);
                 });
         }
+
+        // Handle return key behavior based on user preference
+        if (!use_return_key) {
+            tagify.on('keydown', function(e) {
+                if (e.key === 'Enter' && tagify.dropdown.visible) {
+                    e.preventDefault(); // Prevent default Enter key behavior
+                }
+            });
+        }
     });
-    </script>
+</script>
+{% endif %}
 {% endblock %}

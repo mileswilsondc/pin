@@ -992,12 +992,20 @@ def autocomplete_tags():
     if not query:
         return jsonify([])
     
-    # Order by number of associated links (frequency)
-    tags = Tag.query.filter(Tag.name.ilike(f'{query}%')) \
-                    .outerjoin(link_tags) \
-                    .group_by(Tag.id) \
-                    .order_by(func.count(link_tags.c.link_id).desc()) \
-                    .limit(10).all()
+    # Determine sorting based on user preference
+    if current_user.sort_tags_by_frequency:
+        # Order by number of associated links (frequency)
+        tags = Tag.query.filter(Tag.name.ilike(f'{query}%')) \
+                        .outerjoin(link_tags) \
+                        .group_by(Tag.id) \
+                        .order_by(func.count(link_tags.c.link_id).desc()) \
+                        .limit(10).all()
+    else:
+        # Order alphabetically
+        tags = Tag.query.filter(Tag.name.ilike(f'{query}%')) \
+                        .order_by(Tag.name.asc()) \
+                        .limit(10).all()
+    
     tag_names = [tag.name for tag in tags]
     return jsonify(tag_names)
 
